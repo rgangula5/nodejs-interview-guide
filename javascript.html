@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JavaScript Interview Guide</title>
+<style>
+  :root { --bg:#0f1419; --card:#1a212b; --text:#e6edf3; --muted:#9aa7b4; --accent:#4ea1ff; --code:#0b0f14; --border:#2a3441; --green:#3fb950; --yellow:#e3b341; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; line-height:1.6; font-size:17px; }
+  .wrap { max-width:820px; margin:0 auto; padding:16px 18px 80px; }
+  h1 { font-size:26px; line-height:1.25; margin:8px 0 4px; }
+  h2 { font-size:21px; margin:34px 0 10px; padding-top:10px; border-top:2px solid var(--border); color:#fff; }
+  h3 { font-size:18px; margin:22px 0 6px; color:var(--accent); }
+  p, li { color:var(--text); }
+  .muted { color:var(--muted); font-size:15px; }
+  code { background:var(--code); padding:2px 6px; border-radius:5px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:14px; }
+  pre { background:var(--code); border:1px solid var(--border); border-radius:10px; padding:12px 14px; overflow-x:auto; font-size:13.5px; line-height:1.5; }
+  pre code { background:none; padding:0; }
+  .q { font-weight:700; color:#fff; margin:16px 0 4px; }
+  .a { margin:0 0 8px; }
+  .tip { background:#132a1a; border-left:4px solid var(--green); padding:8px 12px; border-radius:6px; margin:10px 0; font-size:15.5px; }
+  .warn { background:#2a2413; border-left:4px solid var(--yellow); padding:8px 12px; border-radius:6px; margin:10px 0; font-size:15.5px; }
+  .toc { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin:18px 0; }
+  .toc a { color:var(--accent); text-decoration:none; display:block; padding:5px 0; border-bottom:1px solid var(--border); font-size:15.5px; }
+  .toc a:last-child { border-bottom:none; }
+  a { color:var(--accent); }
+  .top { display:inline-block; margin-top:8px; font-size:13px; color:var(--muted); text-decoration:none; }
+  ul { padding-left:20px; }
+  hr { border:none; border-top:1px solid var(--border); margin:24px 0; }
+  .kicker { color:var(--muted); font-size:14px; text-transform:uppercase; letter-spacing:1px; }
+  .nav { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin:14px 0; font-size:15px; }
+  .nav a { text-decoration:none; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="nav">📚 <a href="index.html">Node.js</a> &nbsp;|&nbsp; <a href="concepts.html">Backend Concepts</a> &nbsp;|&nbsp; <strong>JavaScript (here)</strong></div>
+
+<p class="kicker">Interview Prep · Core Language</p>
+<h1>JavaScript Interview Guide</h1>
+<p class="muted">Core JS language questions — closures, <code>this</code>, prototypes, coercion, the event loop, async, ES6+, and the classic output-prediction traps. Concept → answer → code.</p>
+
+<div class="toc" id="top">
+<strong>Contents</strong>
+<a href="#s1">1 · Types, Coercion &amp; Equality</a>
+<a href="#s2">2 · Scope, Hoisting, var/let/const</a>
+<a href="#s3">3 · Closures</a>
+<a href="#s4">4 · <code>this</code> &amp; Binding</a>
+<a href="#s5">5 · Prototypes &amp; Inheritance</a>
+<a href="#s6">6 · Functions (HOF, currying, arrow)</a>
+<a href="#s7">7 · The Event Loop &amp; Async</a>
+<a href="#s8">8 · Promises &amp; async/await</a>
+<a href="#s9">9 · Objects, Arrays, Copying</a>
+<a href="#s10">10 · ES6+ Features</a>
+<a href="#s11">11 · Output-Prediction Traps</a>
+<a href="#s12">12 · Rapid-Fire Q&amp;A (50+)</a>
+</div>
+
+<!-- 1 -->
+<h2 id="s1">1 · Types, Coercion &amp; Equality</h2>
+<p class="q">Primitive types?</p>
+<p class="a"><code>string, number, bigint, boolean, undefined, null, symbol</code> — plus <code>object</code> (non-primitive). Primitives are immutable and copied by value; objects by reference.</p>
+<p class="q">null vs undefined?</p>
+<p class="a"><code>undefined</code> = declared but not assigned (JS default). <code>null</code> = intentional "no value" (you set it). <code>typeof undefined === 'undefined'</code>; <code>typeof null === 'object'</code> (historic bug).</p>
+<p class="q">== vs ===?</p>
+<p class="a"><code>===</code> strict — no type coercion. <code>==</code> loose — coerces types first. Always use <code>===</code> unless you deliberately want coercion. <code>null == undefined</code> is <code>true</code>; <code>null === undefined</code> is <code>false</code>.</p>
+<p class="q">Truthy / falsy?</p>
+<p class="a">Falsy: <code>false, 0, -0, 0n, "", null, undefined, NaN</code>. Everything else (incl. <code>"0"</code>, <code>[]</code>, <code>{}</code>) is truthy.</p>
+<p class="q">NaN?</p>
+<p class="a">"Not a Number"; <code>typeof NaN === 'number'</code>; <code>NaN !== NaN</code> — check with <code>Number.isNaN(x)</code>.</p>
+<pre><code>[] == ![]      // true  (![] -&gt; false -&gt; 0; [] -&gt; "" -&gt; 0)
+'5' + 3        // '53'  (string concat)
+'5' - 3        // 2     (numeric)
+0.1 + 0.2      // 0.30000000000000004 (float precision)</code></pre>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 2 -->
+<h2 id="s2">2 · Scope, Hoisting, var/let/const</h2>
+<ul>
+<li><strong>var</strong> — function-scoped, hoisted &amp; initialized to <code>undefined</code>, re-declarable.</li>
+<li><strong>let/const</strong> — block-scoped, hoisted but in the <strong>Temporal Dead Zone</strong> (can't use before declaration), not re-declarable. <code>const</code> can't be reassigned (but object contents can still mutate).</li>
+</ul>
+<p class="q">What is hoisting?</p>
+<p class="a">Declarations are moved to the top of their scope at compile time. <code>var</code> and function declarations are hoisted (var → undefined; function → fully). <code>let/const</code> are hoisted but not initialized (TDZ). Function <em>expressions</em> are not hoisted as functions.</p>
+<pre><code>console.log(a); // undefined  (var hoisted)
+var a = 1;
+console.log(b); // ReferenceError (TDZ)
+let b = 2;</code></pre>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 3 -->
+<h2 id="s3">3 · Closures</h2>
+<p class="a">A <strong>closure</strong> is a function that remembers the variables from the scope where it was created, even after that scope has returned. Used for data privacy, factories, memoization, callbacks.</p>
+<pre><code>function counter() {
+  let count = 0;               // private
+  return () =&gt; ++count;        // closes over count
+}
+const c = counter();
+c(); // 1
+c(); // 2</code></pre>
+<p class="q">The classic loop bug</p>
+<pre><code>for (var i = 0; i &lt; 3; i++) setTimeout(() =&gt; console.log(i)); // 3 3 3
+for (let i = 0; i &lt; 3; i++) setTimeout(() =&gt; console.log(i)); // 0 1 2</code></pre>
+<p class="a"><code>var</code> is one shared binding (all callbacks see the final <code>i=3</code>); <code>let</code> creates a fresh binding per iteration.</p>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 4 -->
+<h2 id="s4">4 · <code>this</code> &amp; Binding</h2>
+<p class="a"><code>this</code> is determined by <strong>how a function is called</strong>, not where it's defined:</p>
+<ul>
+<li><strong>Default</strong> — plain call → global object (or <code>undefined</code> in strict mode).</li>
+<li><strong>Implicit</strong> — <code>obj.method()</code> → <code>this = obj</code>.</li>
+<li><strong>Explicit</strong> — <code>call/apply</code> (invoke now) / <code>bind</code> (return bound fn) set <code>this</code>.</li>
+<li><strong>new</strong> — <code>this</code> = the new object.</li>
+<li><strong>Arrow functions</strong> — no own <code>this</code>; they inherit it lexically from the enclosing scope. (Can't be bound; not usable as constructors.)</li>
+</ul>
+<pre><code>const obj = {
+  name: 'A',
+  regular() { return this.name; },        // 'A'
+  arrow: () =&gt; this?.name,                 // NOT obj — lexical this
+};
+const f = obj.regular;
+f();                 // undefined/global (lost binding)
+obj.regular.call({name:'B'}); // 'B'</code></pre>
+<div class="tip"><strong>Say this:</strong> "<code>this</code> depends on the call site. Arrow functions don't have their own <code>this</code> — they capture it lexically, which is why they're great for callbacks but wrong for object methods/constructors."</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 5 -->
+<h2 id="s5">5 · Prototypes &amp; Inheritance</h2>
+<p class="a">Every object has an internal link (<code>[[Prototype]]</code>, accessed via <code>__proto__</code>) to another object. Property lookups walk this <strong>prototype chain</strong> until found or null. This is how JS does inheritance.</p>
+<ul>
+<li><code>Func.prototype</code> — the object that instances created with <code>new Func()</code> inherit from.</li>
+<li><code>obj.__proto__</code> — the actual prototype of an instance (= its constructor's <code>.prototype</code>).</li>
+<li><strong>class</strong> is syntactic sugar over prototypes; <code>extends</code>/<code>super</code> set up the chain.</li>
+</ul>
+<pre><code>class Animal { speak(){ return 'generic'; } }
+class Dog extends Animal { speak(){ return 'woof'; } }
+new Dog().speak();               // 'woof'
+new Dog() instanceof Animal;     // true</code></pre>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 6 -->
+<h2 id="s6">6 · Functions (HOF, currying, arrow)</h2>
+<ul>
+<li><strong>First-class</strong> — functions are values (pass, return, store).</li>
+<li><strong>Higher-order function</strong> — takes/returns a function (<code>map</code>, <code>filter</code>, middleware).</li>
+<li><strong>Currying</strong> — <code>f(a)(b)(c)</code> — transform a multi-arg fn into a chain of single-arg fns.</li>
+<li><strong>Arrow vs regular</strong> — arrow: lexical <code>this</code>, no <code>arguments</code>, can't be <code>new</code>'d, concise. Regular: dynamic <code>this</code>, has <code>arguments</code>.</li>
+<li><strong>Params</strong> — default (<code>=</code>), rest (<code>...args</code>), spread on call.</li>
+</ul>
+<pre><code>const add = a =&gt; b =&gt; a + b;   // curried
+add(2)(3); // 5
+const sum = (...nums) =&gt; nums.reduce((a,b)=&gt;a+b, 0); // rest
+sum(1,2,3); // 6</code></pre>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 7 -->
+<h2 id="s7">7 · The Event Loop &amp; Async (JS side)</h2>
+<p class="a">JS is single-threaded with a <strong>call stack</strong>. Async work (timers, fetch, I/O) is handled by the environment (browser/Node); when done, callbacks go to queues the event loop drains when the stack is empty.</p>
+<ul>
+<li><strong>Microtask queue</strong> — Promises (<code>.then</code>), <code>queueMicrotask</code>, <code>MutationObserver</code>. Drained <strong>fully</strong> after each task, before rendering.</li>
+<li><strong>Macrotask (task) queue</strong> — <code>setTimeout</code>, <code>setInterval</code>, I/O, UI events.</li>
+</ul>
+<p class="a"><strong>Rule:</strong> after each macrotask, ALL microtasks run before the next macrotask. So a Promise callback always beats a <code>setTimeout(...,0)</code>.</p>
+<pre><code>console.log('A');
+setTimeout(() =&gt; console.log('B'), 0);
+Promise.resolve().then(() =&gt; console.log('C'));
+console.log('D');
+// A  D  C  B   (sync -&gt; microtasks -&gt; macrotasks)</code></pre>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 8 -->
+<h2 id="s8">8 · Promises &amp; async/await</h2>
+<ul>
+<li>A Promise is pending → fulfilled/rejected (settles once). <code>.then/.catch/.finally</code>.</li>
+<li><code>async</code> fn returns a Promise; <code>await</code> pauses until it settles.</li>
+<li><strong>Combinators:</strong> <code>all</code> (all or first-reject), <code>allSettled</code> (all, never rejects), <code>race</code> (first settle), <code>any</code> (first fulfill).</li>
+</ul>
+<pre><code>// sequential (slow) vs parallel (fast)
+const a = await getA(); const b = await getB();      // slow
+const [a, b] = await Promise.all([getA(), getB()]);  // fast
+
+// error handling
+try { await risky(); } catch (e) { /* handles rejection */ }</code></pre>
+<div class="warn">Gotcha: <code>array.forEach(async ...)</code> does NOT wait. Use <code>for...of</code> + await (sequential) or <code>Promise.all(array.map(...))</code> (parallel).</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 9 -->
+<h2 id="s9">9 · Objects, Arrays, Copying</h2>
+<p class="q">Shallow vs deep copy</p>
+<pre><code>const shallow = { ...obj };            // or Object.assign({}, obj)
+const shallowArr = [...arr];           // top level only
+const deep = structuredClone(obj);     // true deep copy (modern)
+// JSON.parse(JSON.stringify(obj)) - deep but loses fns/dates/undefined</code></pre>
+<p class="a">Shallow copies share nested references — mutating a nested object affects both. Deep copy fully clones.</p>
+<p class="q">Key array methods</p>
+<p class="a"><code>map</code> (transform), <code>filter</code> (subset), <code>reduce</code> (fold to one value), <code>find/findIndex</code>, <code>some/every</code>, <code>forEach</code> (side effects), <code>flat/flatMap</code>, <code>sort</code> (mutates!), <code>slice</code> (copy) vs <code>splice</code> (mutate).</p>
+<pre><code>[1,2,3,4].filter(n =&gt; n%2===0).map(n =&gt; n*10); // [20,40]
+[1,2,3].reduce((sum,n) =&gt; sum+n, 0);           // 6</code></pre>
+<p class="q">Destructuring &amp; optional chaining</p>
+<pre><code>const { name, age = 18 } = user;      // default
+const [first, ...rest] = arr;
+const city = user?.address?.city;     // optional chaining
+const val = input ?? 'default';       // nullish (only null/undefined)</code></pre>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 10 -->
+<h2 id="s10">10 · ES6+ Features (know these names)</h2>
+<ul>
+<li><code>let/const</code>, arrow functions, template literals <code>`${x}`</code>.</li>
+<li>Destructuring, spread/rest, default params.</li>
+<li>Classes, modules (<code>import/export</code>).</li>
+<li><code>Map</code> / <code>Set</code> (and Weak variants), <code>Symbol</code>.</li>
+<li>Promises, async/await, generators (<code>function*</code>, <code>yield</code>).</li>
+<li>Optional chaining <code>?.</code>, nullish coalescing <code>??</code>.</li>
+<li><code>Object.entries/values/keys</code>, <code>Array.flat/flatMap</code>, <code>String.padStart</code>.</li>
+<li><code>structuredClone</code>, top-level <code>await</code>.</li>
+</ul>
+<p class="q">Map vs Object?</p>
+<p class="a">Map: any key type, ordered, easy size (<code>.size</code>), better for frequent add/remove. Object: string/symbol keys, JSON-friendly, has prototype. Set = unique values.</p>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 11 -->
+<h2 id="s11">11 · Output-Prediction Traps (very common)</h2>
+<pre><code>console.log(typeof null);        // 'object'
+console.log(typeof NaN);         // 'number'
+console.log(1 &lt; 2 &lt; 3);           // true  ((1&lt;2)=true=1; 1&lt;3)
+console.log(3 &gt; 2 &gt; 1);           // false ((3&gt;2)=true=1; 1&gt;1 = false)
+console.log(0.1 + 0.2 === 0.3);  // false (float)
+console.log([1,2,3] + [4,5,6]);  // '1,2,34,5,6' (arrays -&gt; strings)
+console.log(!!"false");          // true (non-empty string)
+console.log([] + {});            // '[object Object]'
+const f = () =&gt; { }; console.log(f()); // undefined
+
+// var vs let closure
+for (var i=0;i&lt;3;i++) setTimeout(()=&gt;console.log(i)); // 3 3 3
+
+// hoisting
+console.log(x); var x = 5;       // undefined</code></pre>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 12 -->
+<h2 id="s12">12 · Rapid-Fire Q&amp;A (50+)</h2>
+<p class="q">== vs ===?</p><p class="a">Loose (coerces) vs strict (no coercion). Prefer ===.</p>
+<p class="q">null vs undefined?</p><p class="a">Intentional empty vs not-yet-assigned.</p>
+<p class="q">typeof null?</p><p class="a">'object' (legacy bug).</p>
+<p class="q">Falsy values?</p><p class="a">false, 0, -0, 0n, '', null, undefined, NaN.</p>
+<p class="q">Check for NaN?</p><p class="a">Number.isNaN(x); NaN !== NaN.</p>
+<p class="q">var vs let vs const?</p><p class="a">Function-scoped/hoisted vs block-scoped/TDZ; const no reassignment.</p>
+<p class="q">What is hoisting?</p><p class="a">Declarations moved to top of scope; var→undefined, let/const→TDZ.</p>
+<p class="q">TDZ?</p><p class="a">Temporal Dead Zone — can't access let/const before declaration.</p>
+<p class="q">What is a closure?</p><p class="a">A function remembering its outer scope after that scope returns.</p>
+<p class="q">Closure use cases?</p><p class="a">Data privacy, factories, memoization, callbacks/currying.</p>
+<p class="q">How is `this` determined?</p><p class="a">By the call site: default/implicit/explicit(call,apply,bind)/new; arrow = lexical.</p>
+<p class="q">call vs apply vs bind?</p><p class="a">call(args), apply([args]) invoke now; bind returns a new bound function.</p>
+<p class="q">Arrow vs regular function?</p><p class="a">Arrow: lexical this, no arguments, not constructable, concise.</p>
+<p class="q">Prototype chain?</p><p class="a">Lookup walks __proto__ links until found or null — JS inheritance.</p>
+<p class="q">prototype vs __proto__?</p><p class="a">Constructor's .prototype vs an instance's actual prototype link.</p>
+<p class="q">class in JS?</p><p class="a">Syntactic sugar over prototypes.</p>
+<p class="q">First-class functions?</p><p class="a">Functions are values — pass/return/store them.</p>
+<p class="q">Higher-order function?</p><p class="a">Takes or returns a function.</p>
+<p class="q">Currying?</p><p class="a">Turn f(a,b,c) into f(a)(b)(c).</p>
+<p class="q">IIFE?</p><p class="a">Immediately-invoked function expression — creates a private scope.</p>
+<p class="q">Event loop in one line?</p><p class="a">Runs queued callbacks when the call stack is empty.</p>
+<p class="q">Microtask vs macrotask?</p><p class="a">Promises (micro) drain fully before the next timer/task (macro).</p>
+<p class="q">Promise vs setTimeout(0)?</p><p class="a">Promise (microtask) runs first.</p>
+<p class="q">Promise states?</p><p class="a">Pending → fulfilled/rejected; settles once.</p>
+<p class="q">all vs allSettled vs race vs any?</p><p class="a">all: all/first-reject; allSettled: all, never rejects; race: first settle; any: first fulfill.</p>
+<p class="q">async function returns?</p><p class="a">Always a Promise.</p>
+<p class="q">await does what?</p><p class="a">Pauses the async fn until the promise settles.</p>
+<p class="q">forEach + async trap?</p><p class="a">Doesn't await; use for...of or Promise.all(map).</p>
+<p class="q">Sequential vs parallel awaits?</p><p class="a">Separate awaits = sequential; Promise.all = parallel.</p>
+<p class="q">Shallow vs deep copy?</p><p class="a">Spread copies top level; structuredClone deep-clones.</p>
+<p class="q">Spread vs rest?</p><p class="a">Spread expands; rest gathers into an array.</p>
+<p class="q">map vs forEach?</p><p class="a">map returns a new array; forEach returns undefined (side effects).</p>
+<p class="q">reduce?</p><p class="a">Folds an array into a single value with an accumulator.</p>
+<p class="q">slice vs splice?</p><p class="a">slice copies (no mutate); splice mutates (add/remove).</p>
+<p class="q">Optional chaining?</p><p class="a">?. safely accesses nested props; short-circuits on null/undefined.</p>
+<p class="q">Nullish coalescing?</p><p class="a">?? defaults only on null/undefined (not 0/''/false).</p>
+<p class="q">Map vs Object?</p><p class="a">Any key type, ordered, .size vs string keys/JSON-friendly.</p>
+<p class="q">Set?</p><p class="a">Collection of unique values.</p>
+<p class="q">Symbol?</p><p class="a">Unique immutable primitive, often for unique object keys.</p>
+<p class="q">Generator?</p><p class="a">function* that can pause/resume via yield.</p>
+<p class="q">Object.freeze?</p><p class="a">Shallow-immutable object (top-level props can't change).</p>
+<p class="q">const with objects?</p><p class="a">Binding is constant, but the object's contents can still mutate.</p>
+<p class="q">Pass by value or reference?</p><p class="a">Primitives by value; objects by reference (the reference itself is passed by value).</p>
+<p class="q">== null trick?</p><p class="a">x == null is true for both null and undefined.</p>
+<p class="q">Debounce vs throttle?</p><p class="a">Debounce: run after quiet period; throttle: run at most once per interval.</p>
+<p class="q">JSON.stringify limitations?</p><p class="a">Drops functions/undefined, mangles dates, fails on circular refs.</p>
+<p class="q">Truthy [] and {}?</p><p class="a">Both are truthy (only listed falsy values are false).</p>
+<p class="q">'5' + 3 vs '5' - 3?</p><p class="a">'53' (concat) vs 2 (numeric coercion).</p>
+<p class="q">Deep equality of objects?</p><p class="a">=== compares references; deep-compare by value manually or with a lib.</p>
+
+<hr>
+<p class="muted"><strong>Master these first:</strong> closures · <code>this</code> &amp; arrow functions · event loop (micro vs macro) · Promises/async-await · hoisting &amp; TDZ · coercion (== vs ===). They're asked in nearly every JS interview.</p>
+<div class="nav">📚 <a href="index.html">Node.js</a> &nbsp;|&nbsp; <a href="concepts.html">Backend Concepts</a> &nbsp;|&nbsp; <strong>JavaScript</strong></div>
+
+</div>
+</body>
+</html>
