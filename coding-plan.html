@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coding Interview Plan (JS)</title>
+<style>
+  :root { --bg:#0f1419; --card:#1a212b; --text:#e6edf3; --muted:#9aa7b4; --accent:#4ea1ff; --code:#0b0f14; --border:#2a3441; --green:#3fb950; --yellow:#e3b341; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; line-height:1.6; font-size:17px; }
+  .wrap { max-width:820px; margin:0 auto; padding:16px 18px 80px; }
+  h1 { font-size:26px; line-height:1.25; margin:8px 0 4px; }
+  h2 { font-size:21px; margin:30px 0 8px; padding-top:10px; border-top:2px solid var(--border); color:#fff; }
+  h3 { font-size:17.5px; margin:18px 0 4px; color:var(--accent); }
+  p, li { color:var(--text); }
+  .muted { color:var(--muted); font-size:15px; }
+  code { background:var(--code); padding:2px 6px; border-radius:5px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:14px; }
+  pre { background:var(--code); border:1px solid var(--border); border-radius:10px; padding:12px 14px; overflow-x:auto; font-size:13.5px; line-height:1.5; }
+  pre code { background:none; padding:0; }
+  .tip { background:#132a1a; border-left:4px solid var(--green); padding:8px 12px; border-radius:6px; margin:10px 0; font-size:15.5px; }
+  .warn { background:#2a2413; border-left:4px solid var(--yellow); padding:8px 12px; border-radius:6px; margin:10px 0; font-size:15.5px; }
+  .wk { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin:12px 0; }
+  .wk h3 { margin-top:0; }
+  .toc { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin:18px 0; }
+  .toc a { color:var(--accent); text-decoration:none; display:block; padding:5px 0; border-bottom:1px solid var(--border); font-size:15.5px; }
+  .toc a:last-child { border-bottom:none; }
+  a { color:var(--accent); }
+  .top { display:inline-block; margin-top:8px; font-size:13px; color:var(--muted); text-decoration:none; }
+  ul { padding-left:20px; } li { margin:2px 0; }
+  hr { border:none; border-top:1px solid var(--border); margin:24px 0; }
+  .kicker { color:var(--muted); font-size:14px; text-transform:uppercase; letter-spacing:1px; }
+  .pill { display:inline-block; background:#12283f; color:#9fd0ff; border-radius:20px; padding:1px 9px; font-size:12.5px; margin-left:6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div style="background:#1a212b;border:1px solid #2a3441;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:14.5px;line-height:2;">📚 <a href="index.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Node.js</a> · <a href="concepts.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Backend Concepts</a> · <a href="javascript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">JavaScript</a> · <a href="typescript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">TypeScript</a> · <a href="design-patterns.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Patterns & SOLID</a> · <strong>Coding Plan (here)</strong></div>
+
+<p class="kicker">Interview Prep · Coding</p>
+<h1>Coding Interview Plan (JavaScript)</h1>
+<p class="muted">A ~10-week, pattern-based roadmap from "I can write a for-loop" to "I can solve easy/medium in an interview." Do it in JavaScript. ~120 curated problems.</p>
+
+<div class="toc" id="top">
+<strong>Contents</strong>
+<a href="#rules">0 · The Rules (read this first)</a>
+<a href="#toolkit">1 · JavaScript Toolkit for Problems</a>
+<a href="#patterns">2 · The 15 Patterns</a>
+<a href="#plan">3 · The 10-Week Plan</a>
+<a href="#list">4 · Full Problem List by Pattern</a>
+<a href="#ready">5 · Readiness Check</a>
+</div>
+
+<!-- RULES -->
+<h2 id="rules">0 · The Rules (this is 80% of success)</h2>
+<div class="warn"><strong>Practice WITHOUT AI.</strong> Use ChatGPT/AI to <em>learn</em> a pattern <em>after</em> you've struggled — never to write the first solution. If AI writes it, your brain doesn't build the recall the interview tests.</div>
+<ul>
+<li><strong>The 3-step method for every problem:</strong> (1) attempt cold for 20–30 min; (2) if stuck, read the solution &amp; understand it fully; (3) <strong>re-solve it from memory the next day</strong>. Step 3 is where learning sticks.</li>
+<li><strong>Practice by pattern, not randomly.</strong> Do 5–8 problems of one pattern in a row so it clicks.</li>
+<li><strong>Talk out loud</strong> as you solve — interviewers score your <em>thinking</em>, not just the answer.</li>
+<li><strong>Always state time &amp; space complexity</strong> (Big-O) at the end. Interviewers always ask.</li>
+<li><strong>Redo failures.</strong> Keep a list of problems you couldn't solve; revisit weekly.</li>
+<li><strong>Consistency &gt; cramming.</strong> 1.5–2 hrs/day, 5–6 days/week beats a weekend binge.</li>
+</ul>
+<p class="muted">Resource: <a href="https://neetcode.io/practice">neetcode.io/practice</a> — free, has JS solutions + video explanations, and this plan mirrors its structure.</p>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- TOOLKIT -->
+<h2 id="toolkit">1 · JavaScript Toolkit for Problems</h2>
+<p class="muted">Since your coding is rusty, memorize these — they appear in nearly every problem.</p>
+<pre><code>// Arrays
+arr.push/pop/shift/unshift, arr.slice(i,j) (copy), arr.splice (mutate)
+arr.map / filter / reduce / find / some / every / includes / indexOf
+arr.sort((a,b) =&gt; a-b)         // numeric ASC (default sort is lexical!)
+new Array(n).fill(0)           // fixed-size array
+[...arr]                       // copy;  Math.max(...arr)
+
+// Strings (immutable!)
+s.length, s[i], s.charCodeAt(i), String.fromCharCode(n)
+s.split(''), s.slice, s.substring, s.toLowerCase, s.includes
+
+// Map & Set (your best friends for O(1) lookup)
+const m = new Map(); m.set(k,v); m.get(k); m.has(k); m.size; [...m]
+const seen = new Set(); seen.add(x); seen.has(x); seen.delete(x)
+const count = new Map();                       // frequency map
+count.set(c, (count.get(c) || 0) + 1);
+
+// Numbers
+Math.max/min/abs/floor/ceil/round, Infinity, -Infinity
+Number.MAX_SAFE_INTEGER
+
+// Objects as hashmaps
+const freq = {}; freq[key] = (freq[key] || 0) + 1;
+
+// Queue/Stack: use an array (push/pop = stack; push/shift = queue - O(n) shift!)
+// For big queues use two pointers or a real deque to avoid O(n) shift.</code></pre>
+<div class="tip"><strong>#1 JS gotcha in interviews:</strong> <code>[3,1,20].sort()</code> gives <code>[1,20,3]</code> (lexicographic). Always pass a comparator: <code>.sort((a,b)=&gt;a-b)</code>.</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- PATTERNS -->
+<h2 id="patterns">2 · The 15 Patterns (cover ~80% of questions)</h2>
+<ul>
+<li><strong>Arrays &amp; Hashing</strong> — frequency maps, sets for dedupe/lookup.</li>
+<li><strong>Two Pointers</strong> — sorted arrays, palindromes, pairs.</li>
+<li><strong>Sliding Window</strong> — subarray/substring with a condition.</li>
+<li><strong>Stack</strong> — matching, monotonic stack, parsing.</li>
+<li><strong>Binary Search</strong> — sorted data, "search the answer".</li>
+<li><strong>Linked List</strong> — pointers, fast/slow, reversal.</li>
+<li><strong>Trees (BFS/DFS)</strong> — traversal, recursion.</li>
+<li><strong>Tries</strong> — prefix problems (lighter weight).</li>
+<li><strong>Heap / Priority Queue</strong> — top-K, streaming median.</li>
+<li><strong>Backtracking</strong> — subsets, permutations, combinations.</li>
+<li><strong>Graphs</strong> — BFS/DFS, islands, topological sort.</li>
+<li><strong>1-D Dynamic Programming</strong> — climbing stairs, house robber, coin change.</li>
+<li><strong>Greedy</strong> — local choice → global (Kadane, intervals).</li>
+<li><strong>Intervals</strong> — merge/overlap.</li>
+<li><strong>Math &amp; Bits</strong> — number tricks (lightest priority).</li>
+</ul>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- PLAN -->
+<h2 id="plan">3 · The 10-Week Plan <span class="pill">~1.5–2 hrs/day</span></h2>
+<p class="muted">Each week = one or two patterns, ~10–14 problems (mostly easy→medium). Do the 3-step method on each.</p>
+
+<div class="wk"><h3>Week 1 — Arrays &amp; Hashing</h3>
+Two Sum · Valid Anagram · Contains Duplicate · Group Anagrams · Top K Frequent Elements · Product of Array Except Self · Valid Sudoku · Longest Consecutive Sequence
+<p class="muted">Goal: get fluent with Map/Set and frequency counting. This is the foundation.</p></div>
+
+<div class="wk"><h3>Week 2 — Two Pointers + Sliding Window</h3>
+<b>Two Pointers:</b> Valid Palindrome · Two Sum II (sorted) · 3Sum · Container With Most Water<br>
+<b>Sliding Window:</b> Best Time to Buy/Sell Stock · Longest Substring Without Repeating Characters · Longest Repeating Character Replacement · Permutation in String</div>
+
+<div class="wk"><h3>Week 3 — Stack + Binary Search</h3>
+<b>Stack:</b> Valid Parentheses · Min Stack · Evaluate Reverse Polish Notation · Daily Temperatures<br>
+<b>Binary Search:</b> Binary Search · Search a 2D Matrix · Koko Eating Bananas · Find Minimum in Rotated Sorted Array · Search in Rotated Sorted Array</div>
+
+<div class="wk"><h3>Week 4 — Linked Lists</h3>
+Reverse Linked List · Merge Two Sorted Lists · Linked List Cycle · Reorder List · Remove Nth Node From End · Add Two Numbers · Copy List With Random Pointer · <b>LRU Cache</b> (design — very common)</div>
+
+<div class="wk"><h3>Week 5 — Trees (part 1: DFS/BFS basics)</h3>
+Invert Binary Tree · Maximum Depth · Diameter of Binary Tree · Balanced Binary Tree · Same Tree · Subtree of Another Tree · Lowest Common Ancestor (BST) · Level Order Traversal (BFS)</div>
+
+<div class="wk"><h3>Week 6 — Trees (part 2) + Heaps</h3>
+<b>Trees:</b> Right Side View · Validate BST · Kth Smallest in BST · Construct Tree from Preorder/Inorder<br>
+<b>Heaps:</b> Kth Largest in a Stream · Last Stone Weight · K Closest Points to Origin · Kth Largest Element in Array · Task Scheduler</div>
+
+<div class="wk"><h3>Week 7 — Backtracking</h3>
+Subsets · Combination Sum · Permutations · Subsets II · Combination Sum II · Word Search · Palindrome Partitioning · Letter Combinations of a Phone Number</div>
+
+<div class="wk"><h3>Week 8 — Graphs</h3>
+Number of Islands · Clone Graph · Max Area of Island · Pacific Atlantic Water Flow · Surrounded Regions · Rotting Oranges · Course Schedule (topo sort) · Course Schedule II · Number of Connected Components · Graph Valid Tree</div>
+
+<div class="wk"><h3>Week 9 — 1-D Dynamic Programming</h3>
+Climbing Stairs · Min Cost Climbing Stairs · House Robber · House Robber II · Coin Change · Longest Palindromic Substring · Palindromic Substrings · Maximum Product Subarray · Word Break · Longest Increasing Subsequence</div>
+
+<div class="wk"><h3>Week 10 — Greedy, Intervals, Math + MOCKS</h3>
+<b>Greedy:</b> Maximum Subarray (Kadane) · Jump Game · Jump Game II · Gas Station · Partition Labels<br>
+<b>Intervals:</b> Insert Interval · Merge Intervals · Non-overlapping Intervals · Meeting Rooms · Meeting Rooms II<br>
+<b>Math/Bits:</b> Single Number · Number of 1 Bits · Missing Number · Reverse Integer<br>
+<b>+ Do 3–4 timed mock interviews</b> (45 min, 1–2 mediums, out loud).</div>
+
+<div class="tip"><strong>Short on time?</strong> Do Weeks 1–5 + 8 + 9 (Arrays/Hashing, Two Pointers, Sliding Window, Stack, Binary Search, Linked List, Trees, Graphs, 1-D DP). That's the highest-frequency 70% of interview questions.</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- LIST -->
+<h2 id="list">4 · Full Problem List by Pattern (reference)</h2>
+<h3>Arrays &amp; Hashing</h3>
+<p>Two Sum · Valid Anagram · Contains Duplicate · Group Anagrams · Top K Frequent Elements · Product of Array Except Self · Valid Sudoku · Encode and Decode Strings · Longest Consecutive Sequence</p>
+<h3>Two Pointers</h3>
+<p>Valid Palindrome · Two Sum II · 3Sum · Container With Most Water · Trapping Rain Water <span class="pill">hard</span></p>
+<h3>Sliding Window</h3>
+<p>Best Time to Buy and Sell Stock · Longest Substring Without Repeating Characters · Longest Repeating Character Replacement · Permutation in String · Minimum Window Substring <span class="pill">hard</span></p>
+<h3>Stack</h3>
+<p>Valid Parentheses · Min Stack · Evaluate Reverse Polish Notation · Generate Parentheses · Daily Temperatures · Car Fleet · Largest Rectangle in Histogram <span class="pill">hard</span></p>
+<h3>Binary Search</h3>
+<p>Binary Search · Search a 2D Matrix · Koko Eating Bananas · Find Minimum in Rotated Sorted Array · Search in Rotated Sorted Array · Time Based Key-Value Store</p>
+<h3>Linked List</h3>
+<p>Reverse Linked List · Merge Two Sorted Lists · Reorder List · Remove Nth Node From End · Copy List With Random Pointer · Add Two Numbers · Linked List Cycle · LRU Cache · Merge K Sorted Lists <span class="pill">hard</span></p>
+<h3>Trees</h3>
+<p>Invert Binary Tree · Maximum Depth · Diameter · Balanced Binary Tree · Same Tree · Subtree of Another Tree · Lowest Common Ancestor of a BST · Level Order Traversal · Right Side View · Count Good Nodes · Validate BST · Kth Smallest in a BST · Construct Tree from Preorder and Inorder · Binary Tree Maximum Path Sum <span class="pill">hard</span> · Serialize and Deserialize Binary Tree <span class="pill">hard</span></p>
+<h3>Tries</h3>
+<p>Implement Trie · Design Add and Search Words · Word Search II <span class="pill">hard</span></p>
+<h3>Heap / Priority Queue</h3>
+<p>Kth Largest in a Stream · Last Stone Weight · K Closest Points to Origin · Kth Largest Element in an Array · Task Scheduler · Design Twitter · Find Median from Data Stream <span class="pill">hard</span></p>
+<h3>Backtracking</h3>
+<p>Subsets · Combination Sum · Permutations · Subsets II · Combination Sum II · Word Search · Palindrome Partitioning · Letter Combinations of a Phone Number · N-Queens <span class="pill">hard</span></p>
+<h3>Graphs</h3>
+<p>Number of Islands · Clone Graph · Max Area of Island · Pacific Atlantic Water Flow · Surrounded Regions · Rotting Oranges · Course Schedule · Course Schedule II · Number of Connected Components · Graph Valid Tree · Redundant Connection · Word Ladder <span class="pill">hard</span></p>
+<h3>1-D Dynamic Programming</h3>
+<p>Climbing Stairs · Min Cost Climbing Stairs · House Robber · House Robber II · Longest Palindromic Substring · Palindromic Substrings · Decode Ways · Coin Change · Maximum Product Subarray · Word Break · Longest Increasing Subsequence · Partition Equal Subset Sum</p>
+<h3>Greedy</h3>
+<p>Maximum Subarray · Jump Game · Jump Game II · Gas Station · Hand of Straights · Partition Labels · Valid Parenthesis String</p>
+<h3>Intervals</h3>
+<p>Insert Interval · Merge Intervals · Non-overlapping Intervals · Meeting Rooms · Meeting Rooms II · Minimum Interval to Include Each Query <span class="pill">hard</span></p>
+<h3>Math &amp; Bits</h3>
+<p>Single Number · Number of 1 Bits · Counting Bits · Reverse Bits · Missing Number · Reverse Integer · Plus One · Sum of Two Integers</p>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- READY -->
+<h2 id="ready">5 · Readiness Check</h2>
+<p>You're interview-ready for most companies when you can:</p>
+<ul>
+<li>Solve a <strong>random medium in ~25–35 min</strong>, talking through it, without AI.</li>
+<li><strong>Recognize the pattern</strong> within the first couple minutes ("this is sliding window").</li>
+<li>State <strong>time &amp; space complexity</strong> confidently.</li>
+<li>Redo any Blind-75 problem from memory.</li>
+</ul>
+<div class="tip"><strong>Your edge:</strong> you have 8 years of real building + strong system design and concepts (see the other pages). Coding is the one muscle to build — and you have runway. Grind the patterns, practice out loud, and you'll get there.</div>
+
+<hr>
+<p class="muted"><strong>Start today:</strong> Week 1, Problem 1 = <em>Two Sum</em>. Attempt it cold for 20 minutes before looking at anything.</p>
+<div style="background:#1a212b;border:1px solid #2a3441;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:14.5px;line-height:2;">📚 <a href="index.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Node.js</a> · <a href="concepts.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Backend Concepts</a> · <a href="javascript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">JavaScript</a> · <a href="typescript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">TypeScript</a> · <a href="design-patterns.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Patterns & SOLID</a> · <strong>Coding Plan (here)</strong></div>
+
+</div>
+</body>
+</html>
