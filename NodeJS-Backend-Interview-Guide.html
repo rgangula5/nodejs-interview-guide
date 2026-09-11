@@ -480,6 +480,50 @@ it('GET /health -&gt; 200', async () =&gt; {
 </ol>
 <div class="tip"><strong>Senior signal:</strong> tie answers to real systems you built — event-driven services, a JWT authorizer, idempotent handlers, structured error middleware. Concrete beats textbook.</div>
 
+<h2 id="deep">18 &middot; Deep-Dive Follow-ups (layer 2 &amp; 3)</h2>
+<p style="color:#9aa7b4;font-size:15px">The chains interviewers push after your first Node answer.</p>
+
+<div style="border-left:3px solid #4ea1ff;padding-left:12px;margin:8px 0 10px 4px;">
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">Event loop &rarr; &#8627; setTimeout(0) vs setImmediate &mdash; which first?</p>
+<p style="margin:0 0 6px;font-size:16px"><b>Inside an I/O callback</b>, <code>setImmediate</code> always runs before <code>setTimeout(fn,0)</code> (check phase comes right after poll). In the main module, the order is non-deterministic (depends on timer setup cost).</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627;&#8627; Why is process.nextTick "dangerous"?</p>
+<p style="margin:0 0 6px;font-size:16px">It runs before the loop continues and before Promise microtasks; recursive nextTick can <b>starve</b> the loop so timers/I-O never run.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627; What actually uses the libuv thread pool?</p>
+<p style="margin:0 0 6px;font-size:16px">fs (file I/O), dns.lookup, and CPU crypto/zlib. Network sockets do NOT &mdash; they use the OS async (epoll/kqueue). Tune with <code>UV_THREADPOOL_SIZE</code>.</p>
+</div>
+
+<div style="border-left:3px solid #4ea1ff;padding-left:12px;margin:8px 0 10px 4px;">
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">Streams &rarr; &#8627; pipe() vs pipeline()?</p>
+<p style="margin:0 0 6px;font-size:16px"><code>pipe()</code> does NOT forward errors or clean up on failure (leaks). <code>stream.pipeline()</code> forwards errors, destroys all streams on failure, and gives a callback/promise &mdash; always prefer it in production.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627;&#8627; What is highWaterMark?</p>
+<p style="margin:0 0 6px;font-size:16px">The internal buffer threshold. When buffered data exceeds it, the stream signals backpressure (writable.write returns false) so the source pauses.</p>
+</div>
+
+<div style="border-left:3px solid #4ea1ff;padding-left:12px;margin:8px 0 10px 4px;">
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">Middleware &rarr; &#8627; How does Express know it's error middleware?</p>
+<p style="margin:0 0 6px;font-size:16px">By <b>arity</b> &mdash; a function with exactly 4 params <code>(err,req,res,next)</code> is treated as an error handler. That's why you can't omit unused params there.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627;&#8627; Async error in Express 4 vs 5?</p>
+<p style="margin:0 0 6px;font-size:16px">Express 4 does NOT catch rejected promises in async handlers &mdash; you must <code>.catch(next)</code> or use a wrapper. Express 5 auto-forwards them to the error handler.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627; What does next('route') do?</p>
+<p style="margin:0 0 6px;font-size:16px">Skips the remaining middleware of the <i>current</i> route and jumps to the next matching route &mdash; different from next(err) which jumps to error handlers.</p>
+</div>
+
+<div style="border-left:3px solid #4ea1ff;padding-left:12px;margin:8px 0 10px 4px;">
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">cluster vs worker_threads &rarr; &#8627; Do cluster workers share memory?</p>
+<p style="margin:0 0 6px;font-size:16px">No &mdash; separate processes, isolated memory, communicate via IPC messages. worker_threads DO share memory via <code>SharedArrayBuffer</code> and pass data via messageport.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627;&#8627; So which for a CPU-heavy image resize in an API?</p>
+<p style="margin:0 0 6px;font-size:16px">worker_threads (or a separate queue/service) &mdash; offload the CPU work off the main thread. cluster just adds more event loops; each still blocks on CPU.</p>
+</div>
+
+<div style="border-left:3px solid #4ea1ff;padding-left:12px;margin:8px 0 10px 4px;">
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">Errors &rarr; &#8627; Why not recover from uncaughtException?</p>
+<p style="margin:0 0 6px;font-size:16px">After an uncaught exception the process is in an <b>unknown/corrupt state</b> (half-finished work, leaked resources). Safe move: log, then exit and let a process manager restart a clean instance.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627; How do you propagate a correlation ID across async calls without passing it everywhere?</p>
+<p style="margin:0 0 6px;font-size:16px"><code>AsyncLocalStorage</code> (async_hooks) &mdash; store per-request context that survives across awaits, so logs/traces can access the request ID anywhere.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627; Graceful shutdown steps?</p>
+<p style="margin:0 0 6px;font-size:16px">On SIGTERM: stop accepting new connections (<code>server.close()</code>), finish in-flight requests, drain queues/close DB &amp; sockets, then exit &mdash; with a timeout fallback.</p>
+</div>
+
 <hr>
 <p class="muted">Focus areas if short on time: <strong>Event loop</strong>, <strong>Middleware &amp; next()</strong>, <strong>async/await + Promise.all</strong>, <strong>error handling</strong>, <strong>JWT</strong>, <strong>cluster vs worker_threads</strong>. Those five cover ~80% of backend Node interviews.</p>
 <p class="muted">Good luck — you've got the experience; this just makes it interview-ready. 💪</p>

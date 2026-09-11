@@ -294,6 +294,74 @@ console.log(x); var x = 5;       // undefined</code></pre>
 <p class="q">'5' + 3 vs '5' - 3?</p><p class="a">'53' (concat) vs 2 (numeric coercion).</p>
 <p class="q">Deep equality of objects?</p><p class="a">=== compares references; deep-compare by value manually or with a lib.</p>
 
+<h2 id="deep">13 · Deep-Dive Follow-ups (layer 2 &amp; 3)</h2>
+<p class="muted">The chains interviewers actually push you through after your first answer.</p>
+
+<div class="f">
+<p class="fq">Closures → ↳ Do closures cause memory leaks?</p>
+<p class="a" style="font-size:16px">They can — a closure keeps its referenced variables alive, so a long-lived closure (e.g., an event listener) holding a large object prevents GC. Fix: remove listeners, null references you no longer need.</p>
+<p class="fq">↳ ↳ How is that different from a normal variable being collected?</p>
+<p class="a" style="font-size:16px">Normally a variable is GC'd when its scope exits and nothing references it. A closure <em>extends</em> that lifetime by keeping a reference, so it survives until the closure itself is unreachable.</p>
+<p class="fq">↳ Real-world closure uses beyond counters?</p>
+<p class="a" style="font-size:16px">Module pattern (private state), memoization caches, <code>once()</code> wrappers, partial application/currying, event handlers capturing context, React hooks (useState closes over state).</p>
+</div>
+
+<div class="f">
+<p class="fq"><code>this</code> → ↳ Why do arrow functions fix the "lost this" in callbacks?</p>
+<p class="a" style="font-size:16px">Arrows have no own <code>this</code>; they capture it lexically at definition. So <code>setTimeout(() =&gt; this.x)</code> inside a method keeps the method's <code>this</code>, whereas a regular function would get the default/global.</p>
+<p class="fq">↳ ↳ Then why are arrows WRONG for object methods?</p>
+<p class="a" style="font-size:16px">Because they capture <code>this</code> from the surrounding (module/global) scope, not the object — so <code>{ name, greet: () =&gt; this.name }</code> won't see <code>this.name</code>.</p>
+<p class="fq">↳ How would you implement <code>bind</code> yourself?</p>
+<pre><code>Function.prototype.myBind = function(ctx, ...pre) {
+  const fn = this;
+  return function(...rest) { return fn.apply(ctx, [...pre, ...rest]); };
+};</code></pre>
+</div>
+
+<div class="f">
+<p class="fq">Event loop → ↳ Trace this with await:</p>
+<pre><code>async function f(){ console.log(1); await null; console.log(2); }
+console.log('A'); f(); console.log('B');
+// A 1 B 2   (code after await is a microtask)</code></pre>
+<p class="fq">↳ ↳ Can microtasks starve the event loop?</p>
+<p class="a" style="font-size:16px">Yes — a microtask that keeps queuing more microtasks (or recursive <code>process.nextTick</code>) can prevent timers/I-O from ever running. That's why nextTick recursion is dangerous.</p>
+<p class="fq">↳ Browser vs Node event loop difference?</p>
+<p class="a" style="font-size:16px">Concept is the same. Node adds <code>process.nextTick</code> (runs before other microtasks) and distinct libuv phases (timers/poll/check); browsers add rendering between tasks and have their own task sources (UI events).</p>
+</div>
+
+<div class="f">
+<p class="fq">Prototypes → ↳ Difference between <code>__proto__</code> and <code>prototype</code>, precisely?</p>
+<p class="a" style="font-size:16px"><code>Ctor.prototype</code> is the object future instances will inherit from. <code>instance.__proto__</code> is the live link on an instance, equal to its constructor's <code>.prototype</code>. Only functions have <code>.prototype</code>; all objects have <code>__proto__</code>.</p>
+<p class="fq">↳ ↳ How does <code>instanceof</code> actually work?</p>
+<p class="a" style="font-size:16px">It walks the object's prototype chain checking whether <code>Ctor.prototype</code> appears in it.</p>
+<p class="fq">↳ hasOwnProperty vs <code>in</code>?</p>
+<p class="a" style="font-size:16px"><code>in</code> checks the whole chain (incl. inherited); <code>hasOwnProperty</code> checks only the object's own keys.</p>
+</div>
+
+<div class="f">
+<p class="fq">Promises → ↳ What happens to an unhandled rejection?</p>
+<p class="a" style="font-size:16px">It triggers <code>unhandledRejection</code> (Node) / a console error (browser); in Node it can crash the process. Always attach <code>.catch</code> or wrap in try/catch.</p>
+<p class="fq">↳ ↳ Run promises sequentially over an array?</p>
+<pre><code>await arr.reduce(async (p, item) =&gt; { await p; await handle(item); }, Promise.resolve());
+// or a simple for...of with await</code></pre>
+<p class="fq">↳ Can you cancel a Promise?</p>
+<p class="a" style="font-size:16px">Not natively — a Promise can't be cancelled once started. Use an <code>AbortController</code>/signal (fetch supports it) or a cancellation flag the async work checks.</p>
+</div>
+
+<div class="f">
+<p class="fq">Copying → ↳ Why is JSON.parse(JSON.stringify()) a bad deep clone?</p>
+<p class="a" style="font-size:16px">It drops <code>undefined</code>/functions/symbols, turns <code>Date</code> into a string, loses <code>Map/Set</code>, and throws on circular references. Use <code>structuredClone</code> (handles most, incl. circular) — though it still can't clone functions.</p>
+<p class="fq">↳ Object.is vs ===?</p>
+<p class="a" style="font-size:16px">Mostly same, but <code>Object.is(NaN, NaN)</code> is <code>true</code> and <code>Object.is(+0,-0)</code> is <code>false</code> (=== gives the opposite).</p>
+</div>
+
+<div class="f">
+<p class="fq">Debounce vs throttle → ↳ Implement debounce.</p>
+<pre><code>function debounce(fn, ms){ let t; return (...a)=&gt;{ clearTimeout(t); t=setTimeout(()=&gt;fn(...a), ms); }; }</code></pre>
+<p class="fq">↳ ↳ When throttle instead?</p>
+<p class="a" style="font-size:16px">Debounce = wait until activity stops (search-as-you-type). Throttle = run at most once per interval regardless (scroll/resize handlers).</p>
+</div>
+
 <hr>
 <p class="muted"><strong>Master these first:</strong> closures · <code>this</code> &amp; arrow functions · event loop (micro vs macro) · Promises/async-await · hoisting &amp; TDZ · coercion (== vs ===). They're asked in nearly every JS interview.</p>
 <div style="background:#1a212b;border:1px solid #2a3441;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:14.5px;line-height:2;">📚 <a href="index.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Node.js</a> · <a href="concepts.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Backend Concepts</a> · <strong>JavaScript (here)</strong> · <a href="typescript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">TypeScript</a> · <a href="design-patterns.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Patterns & SOLID</a></div>

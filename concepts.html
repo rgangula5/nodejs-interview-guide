@@ -290,6 +290,53 @@
 <p class="q">Event sourcing?</p><p class="a">Store state as an append-only log of events (replayable, auditable).</p>
 <p class="q">Strangler pattern?</p><p class="a">Incrementally replace a legacy system by routing pieces to new services.</p>
 
+<h2 id="deep">15 &middot; Deep-Dive Follow-ups (layer 2 &amp; 3)</h2>
+<p style="color:#9aa7b4;font-size:15px">The chains interviewers push after your first architecture answer.</p>
+
+<div style="border-left:3px solid #4ea1ff;padding-left:12px;margin:8px 0 10px 4px;">
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">Caching &rarr; &#8627; How do you keep cache and DB consistent?</p>
+<p style="margin:0 0 6px;font-size:16px">There's no perfect answer &mdash; common pattern is cache-aside with <b>invalidate-on-write</b> (write DB, then delete the cache key). Deleting (not updating) avoids races; TTL is the safety net. Accept a small window of staleness.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627;&#8627; How do you prevent a cache stampede?</p>
+<p style="margin:0 0 6px;font-size:16px">Request coalescing / a per-key mutex (only one caller refills, others wait), staggered/jittered TTLs, or probabilistic early expiration (refresh slightly before expiry).</p>
+</div>
+
+<div style="border-left:3px solid #4ea1ff;padding-left:12px;margin:8px 0 10px 4px;">
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">CAP &rarr; &#8627; Give an AP and a CP system.</p>
+<p style="margin:0 0 6px;font-size:16px">AP: DynamoDB/Cassandra (stay available, eventual). CP: a system that refuses writes during a partition to stay consistent (e.g., a strongly-consistent store / ZooKeeper-backed). Most real systems are tunable per-operation.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627;&#8627; What's PACELC?</p>
+<p style="margin:0 0 6px;font-size:16px">Extends CAP: during a Partition choose A or C; Else (normal operation) choose Latency or Consistency. Captures the everyday latency-vs-consistency trade-off CAP ignores.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627; How do replicas reconcile conflicts under eventual consistency?</p>
+<p style="margin:0 0 6px;font-size:16px">Last-write-wins (timestamps), vector clocks, or CRDTs depending on the system.</p>
+</div>
+
+<div style="border-left:3px solid #4ea1ff;padding-left:12px;margin:8px 0 10px 4px;">
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">Idempotency &rarr; &#8627; How do you actually implement an idempotent consumer?</p>
+<p style="margin:0 0 6px;font-size:16px">Store processed message/idempotency keys in a dedupe table (with TTL); on each message, check-and-set atomically &mdash; if seen, skip. This turns at-least-once delivery into effectively-once processing.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627;&#8627; The "dual write" problem &amp; the outbox pattern?</p>
+<p style="margin:0 0 6px;font-size:16px">Writing to DB and publishing an event as two separate steps can partially fail. <b>Outbox</b>: write the event into an outbox table in the <i>same DB transaction</i>, then a relay publishes it &mdash; guarantees the event iff the data was committed.</p>
+</div>
+
+<div style="border-left:3px solid #4ea1ff;padding-left:12px;margin:8px 0 10px 4px;">
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">Load balancing &rarr; &#8627; Sticky sessions &mdash; good or bad?</p>
+<p style="margin:0 0 6px;font-size:16px">They pin a user to one server (needed if state is in-memory) but hurt scaling/failover. Better: make services stateless (state in Redis) so any server handles any request.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627; What's consistent hashing and why?</p>
+<p style="margin:0 0 6px;font-size:16px">Maps keys to nodes on a ring so adding/removing a node only remaps a small fraction of keys (not all). Used for cache/shard distribution to avoid mass rehashing.</p>
+</div>
+
+<div style="border-left:3px solid #4ea1ff;padding-left:12px;margin:8px 0 10px 4px;">
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">Rate limiting &rarr; &#8627; token bucket vs sliding window?</p>
+<p style="margin:0 0 6px;font-size:16px">Token bucket allows bursts up to bucket size then steady refill. Fixed window is simple but allows 2x bursts at boundaries. Sliding-window counter smooths that out. Choose by whether bursts are acceptable.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627;&#8627; How do you rate-limit across many servers?</p>
+<p style="margin:0 0 6px;font-size:16px">Centralize the counter in Redis (atomic INCR + expiry, or a Lua script for token bucket) so all instances share one limit.</p>
+</div>
+
+<div style="border-left:3px solid #4ea1ff;padding-left:12px;margin:8px 0 10px 4px;">
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">Microservices &rarr; &#8627; Saga: orchestration vs choreography?</p>
+<p style="margin:0 0 6px;font-size:16px">Orchestration = a central coordinator tells each service what to do (easier to reason/monitor, single point). Choreography = services react to each other's events (decoupled, but flow is harder to trace). Pick by complexity/visibility needs.</p>
+<p style="font-weight:600;color:#9fd0ff;margin:6px 0 2px">&#8627; How do you debug a request across 10 services?</p>
+<p style="margin:0 0 6px;font-size:16px">Distributed tracing &mdash; propagate a trace/correlation ID through every call (OpenTelemetry), so you can see the full span timeline in Jaeger/Dynatrace.</p>
+</div>
+
 <hr>
 <p class="muted"><strong>If short on time, master:</strong> caching (strategies + invalidation) · load balancing &amp; horizontal scaling · CAP + consistency · queues + delivery guarantees + idempotency · circuit breaker/retries/timeouts · the system-design approach. These recur in almost every senior backend conversation.</p>
 <div style="background:#1a212b;border:1px solid #2a3441;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:14.5px;line-height:2;">📚 <a href="index.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Node.js</a> · <strong>Backend Concepts (here)</strong> · <a href="javascript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">JavaScript</a> · <a href="typescript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">TypeScript</a> · <a href="design-patterns.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Patterns & SOLID</a></div>
