@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Node.js Backend Interview Guide</title>
+<style>
+  :root { --bg:#0f1419; --card:#1a212b; --text:#e6edf3; --muted:#9aa7b4; --accent:#4ea1ff; --code:#0b0f14; --border:#2a3441; --green:#3fb950; --yellow:#e3b341; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; line-height:1.6; font-size:17px; }
+  .wrap { max-width:820px; margin:0 auto; padding:16px 18px 80px; }
+  h1 { font-size:26px; line-height:1.25; margin:8px 0 4px; }
+  h2 { font-size:21px; margin:34px 0 10px; padding-top:10px; border-top:2px solid var(--border); color:#fff; }
+  h3 { font-size:18px; margin:22px 0 6px; color:var(--accent); }
+  h4 { font-size:16px; margin:16px 0 4px; color:#fff; }
+  p, li { color:var(--text); }
+  .muted { color:var(--muted); font-size:15px; }
+  code { background:var(--code); padding:2px 6px; border-radius:5px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:14px; color:#e6edf3; }
+  pre { background:var(--code); border:1px solid var(--border); border-radius:10px; padding:12px 14px; overflow-x:auto; font-size:13.5px; line-height:1.5; }
+  pre code { background:none; padding:0; }
+  .q { font-weight:700; color:#fff; margin:16px 0 4px; }
+  .a { margin:0 0 8px; }
+  .tip { background:#132a1a; border-left:4px solid var(--green); padding:8px 12px; border-radius:6px; margin:10px 0; font-size:15.5px; }
+  .warn { background:#2a2413; border-left:4px solid var(--yellow); padding:8px 12px; border-radius:6px; margin:10px 0; font-size:15.5px; }
+  .toc { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin:18px 0; }
+  .toc a { color:var(--accent); text-decoration:none; display:block; padding:5px 0; border-bottom:1px solid var(--border); font-size:15.5px; }
+  .toc a:last-child { border-bottom:none; }
+  a { color:var(--accent); }
+  .top { display:inline-block; margin-top:8px; font-size:13px; color:var(--muted); text-decoration:none; }
+  ul { padding-left:20px; }
+  hr { border:none; border-top:1px solid var(--border); margin:24px 0; }
+  .kicker { color:var(--muted); font-size:14px; text-transform:uppercase; letter-spacing:1px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">Interview Prep</p>
+<h1>Node.js Backend Interview Guide</h1>
+<p class="muted">Pure backend Node.js &amp; middleware — no database content. Concept → answer → code → how to say it in the interview. Read top-to-bottom or jump via the contents.</p>
+
+<div class="toc" id="top">
+<strong>Contents</strong>
+<a href="#s1">1 · Node.js Fundamentals &amp; Architecture</a>
+<a href="#s2">2 · The Event Loop (the #1 topic)</a>
+<a href="#s3">3 · Async: Callbacks, Promises, async/await</a>
+<a href="#s4">4 · Modules (CommonJS vs ESM)</a>
+<a href="#s5">5 · Streams &amp; Buffers</a>
+<a href="#s6">6 · EventEmitter</a>
+<a href="#s7">7 · Error Handling</a>
+<a href="#s8">8 · HTTP &amp; the http Module</a>
+<a href="#s9">9 · Express &amp; MIDDLEWARE (deep dive)</a>
+<a href="#s10">10 · Building REST APIs</a>
+<a href="#s11">11 · Authentication &amp; Security</a>
+<a href="#s12">12 · Performance, Scaling, cluster &amp; worker_threads</a>
+<a href="#s13">13 · Testing</a>
+<a href="#s14">14 · Node Internals (libuv, memory, GC)</a>
+<a href="#s15">15 · npm / package.json / tooling</a>
+<a href="#s16">16 · Rapid-Fire Q&amp;A (50+)</a>
+<a href="#s17">17 · How to Answer Any Question (framework)</a>
+</div>
+
+<!-- ============ 1 ============ -->
+<h2 id="s1">1 · Node.js Fundamentals &amp; Architecture</h2>
+
+<p class="q">What is Node.js?</p>
+<p class="a">Node.js is a <strong>runtime</strong> that lets you run JavaScript outside the browser, on the server. It's built on Chrome's <strong>V8</strong> engine (compiles JS to machine code) plus <strong>libuv</strong> (a C library that provides the event loop and asynchronous, non-blocking I/O). Node is <strong>single-threaded</strong> for your JS code, <strong>event-driven</strong>, and uses <strong>non-blocking I/O</strong>, which makes it great for I/O-heavy, high-concurrency workloads (APIs, real-time services) and poor for CPU-heavy work.</p>
+
+<p class="q">Why is Node good for I/O but bad for CPU-bound tasks?</p>
+<p class="a">I/O (network, file, timers) is delegated to libuv / the OS and runs asynchronously, so one thread can juggle thousands of connections. But a CPU-heavy task (e.g., image processing, big loops) runs <em>on</em> the single main thread and <strong>blocks the event loop</strong> — every other request stalls. Fix: offload to <code>worker_threads</code>, <code>child_process</code>, a queue, or a separate service.</p>
+
+<p class="q">Single-threaded — but Node uses threads. Explain.</p>
+<p class="a">Your <strong>JavaScript</strong> runs on one thread. But libuv keeps a <strong>thread pool</strong> (default 4, set via <code>UV_THREADPOOL_SIZE</code>) for certain operations that can't be done async at the OS level — file system I/O, DNS lookups (<code>dns.lookup</code>), and CPU-bound crypto (<code>crypto.pbkdf2</code>, <code>zlib</code>). Network I/O uses the OS's async facilities (epoll/kqueue), not the thread pool.</p>
+
+<div class="tip"><strong>Say this:</strong> "JS is single-threaded; I/O is offloaded to libuv, so Node scales I/O concurrency cheaply. The moment you do CPU work on the main thread you block everything — so I move that to a worker thread or a queue."</div>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 2 ============ -->
+<h2 id="s2">2 · The Event Loop (the #1 asked topic)</h2>
+
+<p class="a">The event loop is what lets single-threaded Node do non-blocking I/O. When an async operation finishes, its callback is queued and the loop runs it when the stack is clear. libuv runs the loop in <strong>phases</strong>, in this order, repeating each tick:</p>
+<ul>
+<li><strong>Timers</strong> — callbacks from <code>setTimeout</code> / <code>setInterval</code> whose time is due.</li>
+<li><strong>Pending callbacks</strong> — some system-level callbacks (e.g., TCP errors).</li>
+<li><strong>Poll</strong> — retrieves new I/O events; executes I/O callbacks (most of your work happens here). Blocks here if nothing else to do.</li>
+<li><strong>Check</strong> — <code>setImmediate</code> callbacks.</li>
+<li><strong>Close</strong> — close callbacks (e.g., <code>socket.on('close')</code>).</li>
+</ul>
+
+<p class="q">Microtasks vs macrotasks — the key nuance</p>
+<p class="a"><strong>Between every phase (and after each callback)</strong>, Node drains two microtask queues, in this order:</p>
+<ul>
+<li><strong><code>process.nextTick()</code> queue</strong> — highest priority, runs first.</li>
+<li><strong>Promise (microtask) queue</strong> — <code>.then/.catch/finally</code>, <code>await</code> continuations.</li>
+</ul>
+<p class="a"><strong>Macrotasks</strong> = timers, setImmediate, I/O callbacks (the phases above). Microtasks always drain fully before moving on.</p>
+
+<p class="q">Predict the output</p>
+<pre><code>console.log('1 sync');
+setTimeout(() =&gt; console.log('2 timeout'), 0);
+setImmediate(() =&gt; console.log('3 immediate'));
+Promise.resolve().then(() =&gt; console.log('4 promise'));
+process.nextTick(() =&gt; console.log('5 nextTick'));
+console.log('6 sync');
+
+// Output:
+// 1 sync
+// 6 sync
+// 5 nextTick      &lt;- microtask, before promises
+// 4 promise       &lt;- microtask
+// 2 timeout  /  3 immediate  (order between these two can vary)</code></pre>
+
+<p class="q">setTimeout(fn,0) vs setImmediate vs process.nextTick?</p>
+<ul>
+<li><code>process.nextTick</code> — runs <strong>before</strong> the event loop continues, after the current operation. Can starve the loop if used recursively.</li>
+<li>Promise <code>.then</code> — microtask, right after nextTick.</li>
+<li><code>setImmediate</code> — runs in the <strong>check</strong> phase (after poll).</li>
+<li><code>setTimeout(fn,0)</code> — runs in the <strong>timers</strong> phase; minimum ~1ms, not truly 0.</li>
+</ul>
+
+<div class="tip"><strong>Say this:</strong> "Microtasks — nextTick then Promises — drain completely between event-loop phases. So a Promise callback always runs before a setTimeout, even a 0ms one."</div>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 3 ============ -->
+<h2 id="s3">3 · Async: Callbacks, Promises, async/await</h2>
+
+<p class="q">Error-first callbacks &amp; callback hell</p>
+<pre><code>fs.readFile('a.txt', (err, data) =&gt; {
+  if (err) return handle(err);   // error-first convention
+  // nesting more callbacks here =&gt; "callback hell"
+});</code></pre>
+
+<p class="q">Promises &amp; combinators</p>
+<ul>
+<li><code>Promise.all([...])</code> — waits for all; <strong>rejects fast</strong> if any one rejects.</li>
+<li><code>Promise.allSettled([...])</code> — waits for all; never rejects; returns <code>{status,value|reason}</code>.</li>
+<li><code>Promise.race([...])</code> — settles with the <strong>first</strong> to settle (resolve or reject).</li>
+<li><code>Promise.any([...])</code> — first to <strong>fulfill</strong>; rejects only if all reject (AggregateError).</li>
+</ul>
+
+<p class="q">async/await — sequential vs parallel (common trap)</p>
+<pre><code>// SLOW - sequential, ~2x time
+const a = await getA();
+const b = await getB();
+
+// FAST - parallel, both start together
+const [a, b] = await Promise.all([getA(), getB()]);</code></pre>
+
+<p class="q">How do you handle errors in async/await?</p>
+<pre><code>try {
+  const data = await risky();
+} catch (err) {
+  // handles both sync throws and rejected promises
+}
+// In Express, wrap async handlers so rejections reach error middleware:
+const wrap = fn =&gt; (req,res,next) =&gt; Promise.resolve(fn(req,res,next)).catch(next);</code></pre>
+
+<div class="warn"><strong>Gotcha:</strong> <code>forEach</code> does NOT await. Use <code>for...of</code> with await for sequential, or <code>Promise.all(arr.map(...))</code> for parallel.</div>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 4 ============ -->
+<h2 id="s4">4 · Modules (CommonJS vs ESM)</h2>
+<ul>
+<li><strong>CommonJS</strong> (<code>require</code>/<code>module.exports</code>) — synchronous, default in Node historically. <code>require</code> is <strong>cached</strong> after first load (module is a singleton).</li>
+<li><strong>ES Modules</strong> (<code>import</code>/<code>export</code>) — standard, async-friendly, static analysis / tree-shaking. Enable via <code>"type":"module"</code> in package.json or <code>.mjs</code>.</li>
+<li>Differences: ESM imports are <strong>hoisted &amp; static</strong> (can't conditionally import at top level; use dynamic <code>import()</code>); <code>__dirname</code>/<code>__filename</code> not available in ESM (use <code>import.meta.url</code>); <code>this</code> is <code>undefined</code> at module top in ESM vs <code>module.exports</code> in CJS.</li>
+</ul>
+<p class="a"><strong>Module wrapper:</strong> Node wraps each file in a function giving you <code>exports, require, module, __filename, __dirname</code> — that's why these "globals" exist per-file.</p>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 5 ============ -->
+<h2 id="s5">5 · Streams &amp; Buffers</h2>
+<p class="a"><strong>Streams</strong> process data in chunks instead of loading it all into memory — essential for large files/payloads.</p>
+<ul>
+<li><strong>Readable</strong> (fs read, HTTP request), <strong>Writable</strong> (fs write, HTTP response), <strong>Duplex</strong> (both, e.g., TCP socket), <strong>Transform</strong> (modify while passing, e.g., zlib/gzip).</li>
+<li><code>pipe()</code> connects readable → writable and handles <strong>backpressure</strong> automatically.</li>
+</ul>
+<pre><code>fs.createReadStream('big.log')
+  .pipe(zlib.createGzip())
+  .pipe(fs.createWriteStream('big.log.gz'));</code></pre>
+<p class="q">What is backpressure?</p>
+<p class="a">When a readable produces data faster than the writable can consume it. <code>pipe()</code> (and <code>stream.pipeline()</code>) manage it by pausing the source until the destination drains, preventing memory blow-up. <code>pipeline()</code> is preferred — it also forwards errors and cleans up.</p>
+<p class="q">Buffer?</p>
+<p class="a">A fixed-length chunk of <strong>binary</strong> data outside the V8 heap. Used for raw bytes — file contents, network packets, crypto. <code>Buffer.from('hi')</code>, <code>buf.toString('utf8')</code>.</p>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 6 ============ -->
+<h2 id="s6">6 · EventEmitter</h2>
+<p class="a">Node's pub/sub building block; many core objects (streams, HTTP server) are EventEmitters.</p>
+<pre><code>const { EventEmitter } = require('events');
+const bus = new EventEmitter();
+bus.on('order', (id) =&gt; console.log('got', id));  // subscribe
+bus.emit('order', 42);                             // publish
+// once() = one-time; removeListener() to unsubscribe.</code></pre>
+<div class="warn">Emitters are <strong>synchronous</strong> — listeners run in registration order, on the same tick. A thrown error in a listener with no <code>'error'</code> handler crashes the process.</div>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 7 ============ -->
+<h2 id="s7">7 · Error Handling</h2>
+<ul>
+<li><strong>Operational errors</strong> (expected: bad input, network fail) — handle &amp; respond gracefully.</li>
+<li><strong>Programmer errors</strong> (bugs: undefined access) — let it crash, fix the code; don't try to recover.</li>
+</ul>
+<pre><code>// last-resort safety nets (log + exit; don't keep running in bad state)
+process.on('uncaughtException', err =&gt; { log(err); process.exit(1); });
+process.on('unhandledRejection', err =&gt; { log(err); process.exit(1); });</code></pre>
+<p class="q">Central error handling in Express</p>
+<pre><code>// Error-handling middleware has FOUR args (err first):
+app.use((err, req, res, next) =&gt; {
+  const status = err.status || 500;
+  res.status(status).json({ error: err.message });
+});</code></pre>
+<div class="tip"><strong>Say this:</strong> "I separate operational from programmer errors, funnel everything to one error-handling middleware, and use last-resort <code>uncaughtException</code>/<code>unhandledRejection</code> handlers that log and exit so a process manager restarts a clean instance."</div>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 8 ============ -->
+<h2 id="s8">8 · HTTP &amp; the http Module</h2>
+<pre><code>const http = require('http');
+const server = http.createServer((req, res) =&gt; {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ ok: true }));
+});
+server.listen(3000);</code></pre>
+<p class="a"><code>req</code> is a Readable stream, <code>res</code> is a Writable stream. Express is a thin, ergonomic layer on top of this: routing + middleware + helpers (<code>res.json</code>, <code>req.params</code>).</p>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 9 — THE BIG ONE ============ -->
+<h2 id="s9">9 · Express &amp; MIDDLEWARE (deep dive)</h2>
+
+<p class="q">What is middleware?</p>
+<p class="a">A <strong>function that sits in the request→response pipeline</strong> with access to the request (<code>req</code>), the response (<code>res</code>), and the <strong><code>next</code></strong> function. It can: run code, modify req/res, end the response, or call <code>next()</code> to pass control to the next middleware. Express is essentially <strong>"a stack of middleware executed in order."</strong></p>
+<pre><code>function logger(req, res, next) {
+  req.startTime = Date.now();        // modify req
+  console.log(req.method, req.url);  // run code
+  next();                            // pass control on
+}
+app.use(logger);</code></pre>
+
+<p class="q">The middleware signature &amp; the role of next()</p>
+<ul>
+<li><code>(req, res, next)</code> — normal middleware.</li>
+<li><code>(err, req, res, next)</code> — <strong>error</strong> middleware (4 args; Express detects the arity).</li>
+<li><code>next()</code> — go to the next middleware.</li>
+<li><code>next('route')</code> — skip remaining middleware of the current route, jump to the next matching route.</li>
+<li><code>next(err)</code> — skip all normal middleware and jump straight to error-handling middleware.</li>
+</ul>
+<div class="warn"><strong>Most common bug:</strong> forgetting <code>next()</code> (or a response). The request just <strong>hangs</strong> forever. Every middleware must either end the response or call <code>next()</code>.</div>
+
+<p class="q">Order matters — explain</p>
+<p class="a">Middleware runs <strong>top-to-bottom in the order registered</strong>. So <code>express.json()</code> must come before routes that read <code>req.body</code>; auth middleware before protected routes; the 404 handler after all routes; the error handler <strong>last</strong>.</p>
+<pre><code>app.use(express.json());        // 1. parse body
+app.use(logger);                // 2. log
+app.use('/api', authMiddleware);// 3. protect /api
+app.use('/api/users', usersRouter); // 4. routes
+app.use((req,res) =&gt; res.status(404).json({error:'Not found'})); // 5. 404
+app.use(errorHandler);          // 6. errors (last, 4 args)</code></pre>
+
+<p class="q">Types of middleware (name them)</p>
+<ul>
+<li><strong>Application-level</strong> — <code>app.use(fn)</code> / <code>app.get(path, fn)</code>.</li>
+<li><strong>Router-level</strong> — bound to an <code>express.Router()</code> instance.</li>
+<li><strong>Error-handling</strong> — the 4-arg one.</li>
+<li><strong>Built-in</strong> — <code>express.json()</code>, <code>express.urlencoded()</code>, <code>express.static()</code>.</li>
+<li><strong>Third-party</strong> — <code>cors</code>, <code>helmet</code>, <code>morgan</code>, <code>compression</code>, <code>express-rate-limit</code>, <code>cookie-parser</code>.</li>
+</ul>
+
+<p class="q">Route-specific vs global middleware</p>
+<pre><code>// global
+app.use(logger);
+// single route, multiple middleware in a chain:
+app.get('/admin', authMiddleware, requireAdmin, (req,res) =&gt; res.send('ok'));</code></pre>
+
+<p class="q">Write an auth middleware (very common ask)</p>
+<pre><code>function auth(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token' });
+  try {
+    req.user = verifyToken(token);   // attach to req for downstream
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}</code></pre>
+
+<p class="q">Write a middleware factory (parameterized middleware)</p>
+<pre><code>// returns a middleware — lets you configure per-route
+function requireRole(role) {
+  return (req, res, next) =&gt; {
+    if (req.user?.role !== role) return res.status(403).json({error:'Forbidden'});
+    next();
+  };
+}
+app.delete('/users/:id', auth, requireRole('admin'), handler);</code></pre>
+
+<p class="q">How do you handle async errors in middleware?</p>
+<pre><code>// async middleware must forward rejections to next():
+const asyncH = fn =&gt; (req,res,next) =&gt; Promise.resolve(fn(req,res,next)).catch(next);
+app.get('/x', asyncH(async (req,res) =&gt; {
+  const data = await service();   // if this throws, next(err) fires
+  res.json(data);
+}));
+// (Express 5 auto-forwards async rejections; Express 4 needs this wrapper.)</code></pre>
+
+<p class="q">The "onion" / pipeline model</p>
+<p class="a">Requests flow <strong>down</strong> the middleware stack to the route handler, then the response flows back <strong>up</strong>. Middleware can act before <em>and</em> after <code>next()</code> (e.g., start a timer before, log duration after):</p>
+<pre><code>app.use(async (req, res, next) =&gt; {
+  const start = Date.now();
+  await next();                         // let downstream run
+  console.log('took', Date.now() - start, 'ms'); // runs on the way back
+});</code></pre>
+
+<p class="q">Express vs Koa middleware (sometimes asked)</p>
+<p class="a">Express uses <strong>callback-style</strong> <code>next()</code>. Koa (by the same team) uses <strong>async/await</strong> middleware with a cleaner onion model (<code>await next()</code>) and a single <code>ctx</code> object instead of <code>req/res</code>. Concept is the same; Koa is lighter and modern-async-first.</p>
+
+<div class="tip"><strong>One-liner to nail it:</strong> "Middleware is a function with <code>(req,res,next)</code> that runs in registered order; it either responds or calls <code>next()</code>. Error middleware takes four args and everything funnels to it. Order is everything — parsers first, auth before protected routes, error handler last."</div>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 10 ============ -->
+<h2 id="s10">10 · Building REST APIs</h2>
+<ul>
+<li><strong>REST principles:</strong> resources (nouns) as URLs, HTTP verbs for actions (GET/POST/PUT/PATCH/DELETE), stateless, standard status codes.</li>
+<li><strong>Status codes:</strong> 200 OK, 201 Created, 204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict, 422 Unprocessable, 429 Too Many Requests, 500 Server Error.</li>
+<li><strong>Idempotency:</strong> GET/PUT/DELETE should be safe to retry with the same result; POST is not idempotent (use idempotency keys for payments).</li>
+<li><strong>Versioning:</strong> <code>/api/v1/...</code> or headers.</li>
+<li><strong>Pagination:</strong> <code>?limit=&amp;offset=</code> or cursor-based.</li>
+<li><strong>Validation:</strong> validate input at the edge (middleware) — reject bad requests with 400/422 before business logic. (You use Zod — mention schema validation as middleware.)</li>
+</ul>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 11 ============ -->
+<h2 id="s11">11 · Authentication &amp; Security</h2>
+<p class="q">JWT vs sessions</p>
+<ul>
+<li><strong>Sessions</strong> — server stores session state, client holds a session-id cookie. Stateful; easy to revoke; needs shared store to scale.</li>
+<li><strong>JWT</strong> — signed token (header.payload.signature) holding claims; <strong>stateless</strong>, server just verifies the signature. Scales well; harder to revoke (use short expiry + refresh tokens). Never put secrets in the payload — it's base64, not encrypted.</li>
+</ul>
+<p class="q">Refresh tokens</p>
+<p class="a">Short-lived access token (~15 min) + long-lived refresh token (stored securely, e.g., httpOnly cookie). When the access token expires, exchange the refresh token for a new one — limits damage if an access token leaks.</p>
+<p class="q">Security checklist (say several)</p>
+<ul>
+<li><strong>helmet</strong> — sets secure HTTP headers.</li>
+<li><strong>CORS</strong> — restrict allowed origins.</li>
+<li><strong>Rate limiting</strong> — <code>express-rate-limit</code> to stop brute force/DoS.</li>
+<li><strong>Input validation &amp; sanitization</strong> — prevent injection.</li>
+<li><strong>bcrypt/argon2</strong> — hash passwords (never store plaintext).</li>
+<li><strong>Secrets in env/secret manager</strong>, never in code.</li>
+<li><strong>HTTPS</strong>, secure/httpOnly cookies, CSRF protection for cookie-based auth.</li>
+<li>Keep deps patched (<code>npm audit</code>).</li>
+</ul>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 12 ============ -->
+<h2 id="s12">12 · Performance, Scaling, cluster &amp; worker_threads</h2>
+<ul>
+<li><strong>cluster</strong> — forks multiple Node <strong>processes</strong> (one per CPU core) sharing a port; the OS/master load-balances connections. Scales across cores since a single Node process uses one core for JS. (PM2 does this for you.)</li>
+<li><strong>worker_threads</strong> — real <strong>threads</strong> within one process, sharing memory (via <code>SharedArrayBuffer</code>). Best for <strong>CPU-bound</strong> work without blocking the main loop.</li>
+<li><strong>child_process</strong> — spawn separate programs/scripts (<code>spawn</code>, <code>exec</code>, <code>fork</code>).</li>
+</ul>
+<p class="q">cluster vs worker_threads?</p>
+<p class="a">cluster = multiple processes (isolated memory) for scaling <strong>I/O concurrency</strong> across cores. worker_threads = threads (shared memory) for <strong>CPU-bound</strong> computation. Rule of thumb: scale a web server with cluster/PM2; offload heavy computation to worker_threads.</p>
+<p class="q">Other performance levers</p>
+<ul>
+<li>Caching (in-memory / Redis), <code>compression</code> middleware (gzip), keep-alive.</li>
+<li>Avoid blocking the loop (no sync fs/crypto on the hot path).</li>
+<li>Stream large responses instead of buffering.</li>
+<li>Use a process manager (PM2) for clustering + auto-restart; put Nginx/ALB in front.</li>
+</ul>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 13 ============ -->
+<h2 id="s13">13 · Testing</h2>
+<ul>
+<li><strong>Unit</strong> — pure functions/logic in isolation (Jest, Mocha/Chai, Vitest).</li>
+<li><strong>Integration</strong> — routes end-to-end with <strong>supertest</strong> hitting the Express app.</li>
+<li><strong>Mocks/stubs/spies</strong> — replace external calls; <code>jest.mock()</code>, Sinon.</li>
+</ul>
+<pre><code>const request = require('supertest');
+it('GET /health -&gt; 200', async () =&gt; {
+  const res = await request(app).get('/health');
+  expect(res.status).toBe(200);
+});</code></pre>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 14 ============ -->
+<h2 id="s14">14 · Node Internals (libuv, memory, GC)</h2>
+<ul>
+<li><strong>libuv</strong> — C library providing the event loop, thread pool, and async I/O abstractions across OSes.</li>
+<li><strong>V8 memory</strong> — young (new) space + old space (heap). GC is generational (Scavenge for young, Mark-Sweep-Compact for old).</li>
+<li><strong>Memory leaks</strong> — common causes: growing global arrays/maps, unremoved event listeners, closures holding references, caches without eviction. Diagnose with <code>--inspect</code> + Chrome DevTools heap snapshots, <code>process.memoryUsage()</code>.</li>
+<li><strong>Default heap</strong> ~1.5–2GB; raise with <code>--max-old-space-size</code>.</li>
+</ul>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 15 ============ -->
+<h2 id="s15">15 · npm / package.json / tooling</h2>
+<ul>
+<li><strong>dependencies</strong> (needed at runtime) vs <strong>devDependencies</strong> (build/test only).</li>
+<li><strong>Semver</strong> <code>MAJOR.MINOR.PATCH</code>; <code>^1.2.3</code> allows minor+patch, <code>~1.2.3</code> allows patch only.</li>
+<li><strong>package-lock.json</strong> — pins the exact dependency tree for reproducible installs; <code>npm ci</code> installs strictly from it.</li>
+<li><strong>scripts</strong> — <code>npm run &lt;name&gt;</code>. <strong>npx</strong> runs a package binary without global install.</li>
+<li><code>process.env</code> for config; <code>process.argv</code> for CLI args.</li>
+</ul>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 16 ============ -->
+<h2 id="s16">16 · Rapid-Fire Q&amp;A (50+)</h2>
+
+<p class="q">Is Node single or multi-threaded?</p><p class="a">JS runs single-threaded; libuv adds a thread pool for some I/O. So "single-threaded event loop with a background thread pool."</p>
+<p class="q">What's the event loop in one sentence?</p><p class="a">The mechanism that lets single-threaded Node handle many concurrent operations by queuing callbacks and running them when the call stack is empty.</p>
+<p class="q">nextTick vs setImmediate?</p><p class="a">nextTick runs before the loop continues (highest priority microtask); setImmediate runs in the check phase after poll.</p>
+<p class="q">Promise vs setTimeout(0)?</p><p class="a">Promise callback (microtask) always runs before setTimeout (macrotask).</p>
+<p class="q">Callback hell fix?</p><p class="a">Promises / async-await / modularizing functions.</p>
+<p class="q">Promise.all vs allSettled?</p><p class="a">all rejects on first failure; allSettled waits for all and never rejects.</p>
+<p class="q">What is middleware?</p><p class="a">A function <code>(req,res,next)</code> in the request pipeline that can modify req/res, end the response, or pass control via next().</p>
+<p class="q">How many args does error middleware take?</p><p class="a">Four: <code>(err, req, res, next)</code>.</p>
+<p class="q">What does next() do? next(err)?</p><p class="a">next() → next middleware; next(err) → jumps to error-handling middleware.</p>
+<p class="q">What happens if you forget next()?</p><p class="a">The request hangs — no response, no next middleware.</p>
+<p class="q">Order of middleware — why care?</p><p class="a">They run in registration order; parsers/auth must precede handlers, error handler is last.</p>
+<p class="q">express.json() does what?</p><p class="a">Built-in middleware that parses JSON request bodies into <code>req.body</code>.</p>
+<p class="q">app.use vs app.get?</p><p class="a">use = all methods/any path prefix; get = GET on a specific path.</p>
+<p class="q">Router-level middleware?</p><p class="a">Middleware attached to an <code>express.Router()</code> instance, mounted at a base path.</p>
+<p class="q">How to make config-able middleware?</p><p class="a">A factory function that returns a middleware.</p>
+<p class="q">Streams — why?</p><p class="a">Process data in chunks to avoid loading everything in memory; handle large files/payloads.</p>
+<p class="q">Backpressure?</p><p class="a">Producer faster than consumer; pipe()/pipeline() pause the source to avoid memory blowup.</p>
+<p class="q">Buffer?</p><p class="a">Fixed-length binary data outside the V8 heap.</p>
+<p class="q">EventEmitter?</p><p class="a">Pub/sub: on()/emit(); synchronous; core to streams &amp; servers.</p>
+<p class="q">CommonJS vs ESM?</p><p class="a">require (sync, cached) vs import/export (static, async-friendly, tree-shakeable).</p>
+<p class="q">Is require cached?</p><p class="a">Yes — a module loads once and is reused (singleton).</p>
+<p class="q">__dirname in ESM?</p><p class="a">Not available; derive from <code>import.meta.url</code>.</p>
+<p class="q">uncaughtException — should you keep running?</p><p class="a">No; log and exit, let a process manager restart clean.</p>
+<p class="q">Operational vs programmer error?</p><p class="a">Expected runtime issues to handle vs bugs to fix (and let crash).</p>
+<p class="q">JWT vs session?</p><p class="a">Stateless signed token vs server-stored state; JWT scales, sessions revoke easily.</p>
+<p class="q">Is JWT encrypted?</p><p class="a">No — it's signed &amp; base64-encoded; anyone can read the payload. Don't put secrets in it.</p>
+<p class="q">How to revoke a JWT?</p><p class="a">Short expiry + refresh tokens, or a denylist/rotation.</p>
+<p class="q">cluster vs worker_threads?</p><p class="a">Processes for I/O scaling across cores vs threads (shared memory) for CPU work.</p>
+<p class="q">How to not block the event loop?</p><p class="a">Avoid sync CPU work; offload to worker_threads/queues; use async APIs.</p>
+<p class="q">UV_THREADPOOL_SIZE?</p><p class="a">Env var controlling libuv's thread pool size (default 4).</p>
+<p class="q">middleware for logging request duration?</p><p class="a">Record start time, <code>await next()</code>, log <code>Date.now()-start</code> on the way back.</p>
+<p class="q">helmet / cors / rate-limit?</p><p class="a">Security headers / origin control / throttle requests — all middleware.</p>
+<p class="q">How to hash passwords?</p><p class="a">bcrypt or argon2 with a salt; never plaintext or fast hashes.</p>
+<p class="q">Idempotent methods?</p><p class="a">GET, PUT, DELETE (safe to retry); POST is not.</p>
+<p class="q">Status for validation failure?</p><p class="a">400 (bad request) or 422 (unprocessable entity).</p>
+<p class="q">supertest is for?</p><p class="a">Integration-testing HTTP endpoints against the Express app.</p>
+<p class="q">package-lock.json?</p><p class="a">Locks exact dependency versions for reproducible installs (<code>npm ci</code>).</p>
+<p class="q">^ vs ~ in semver?</p><p class="a">^ allows minor+patch updates; ~ allows patch only.</p>
+<p class="q">process.nextTick starvation?</p><p class="a">Recursive nextTick can starve the event loop (I/O never runs). Prefer setImmediate for "run soon."</p>
+<p class="q">How does Express relate to http?</p><p class="a">It's a framework layer over the core http module adding routing + middleware.</p>
+<p class="q">Global objects in Node?</p><p class="a">process, Buffer, __dirname/__filename (CJS), setTimeout/setInterval/setImmediate, console.</p>
+<p class="q">What is process.env?</p><p class="a">Environment variables object — used for configuration/secrets.</p>
+<p class="q">Graceful shutdown?</p><p class="a">On SIGTERM, stop accepting new connections, finish in-flight requests, close resources, then exit.</p>
+<p class="q">Difference: exec vs spawn?</p><p class="a">exec buffers output (small results), spawn streams it (large/continuous output).</p>
+
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- ============ 17 ============ -->
+<h2 id="s17">17 · How to Answer ANY Node Question (framework)</h2>
+<ol>
+<li><strong>One-sentence definition first.</strong> ("Middleware is a function with req/res/next in the request pipeline.")</li>
+<li><strong>Then the why / when.</strong> ("You use it for cross-cutting concerns — auth, logging, validation.")</li>
+<li><strong>Then a tiny concrete example</strong> (name a real one you built — your Lambda authorizer, request validation with Zod, your CI/logging middleware).</li>
+<li><strong>Mention a trade-off or gotcha</strong> — shows senior depth (order matters / forgetting next() hangs the request / blocking the loop).</li>
+</ol>
+<div class="tip"><strong>Senior signal:</strong> tie answers to real systems you built — event-driven services, a JWT authorizer, idempotent handlers, structured error middleware. Concrete beats textbook.</div>
+
+<hr>
+<p class="muted">Focus areas if short on time: <strong>Event loop</strong>, <strong>Middleware &amp; next()</strong>, <strong>async/await + Promise.all</strong>, <strong>error handling</strong>, <strong>JWT</strong>, <strong>cluster vs worker_threads</strong>. Those five cover ~80% of backend Node interviews.</p>
+<p class="muted">Good luck — you've got the experience; this just makes it interview-ready. 💪</p>
+
+</div>
+</body>
+</html>
