@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backend Engineering Concepts — Interview Guide</title>
+<style>
+  :root { --bg:#0f1419; --card:#1a212b; --text:#e6edf3; --muted:#9aa7b4; --accent:#4ea1ff; --code:#0b0f14; --border:#2a3441; --green:#3fb950; --yellow:#e3b341; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; line-height:1.6; font-size:17px; }
+  .wrap { max-width:820px; margin:0 auto; padding:16px 18px 80px; }
+  h1 { font-size:26px; line-height:1.25; margin:8px 0 4px; }
+  h2 { font-size:21px; margin:34px 0 10px; padding-top:10px; border-top:2px solid var(--border); color:#fff; }
+  h3 { font-size:18px; margin:22px 0 6px; color:var(--accent); }
+  p, li { color:var(--text); }
+  .muted { color:var(--muted); font-size:15px; }
+  code { background:var(--code); padding:2px 6px; border-radius:5px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:14px; }
+  .q { font-weight:700; color:#fff; margin:16px 0 4px; }
+  .a { margin:0 0 8px; }
+  .tip { background:#132a1a; border-left:4px solid var(--green); padding:8px 12px; border-radius:6px; margin:10px 0; font-size:15.5px; }
+  .warn { background:#2a2413; border-left:4px solid var(--yellow); padding:8px 12px; border-radius:6px; margin:10px 0; font-size:15.5px; }
+  .toc { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin:18px 0; }
+  .toc a { color:var(--accent); text-decoration:none; display:block; padding:5px 0; border-bottom:1px solid var(--border); font-size:15.5px; }
+  .toc a:last-child { border-bottom:none; }
+  a { color:var(--accent); }
+  .top { display:inline-block; margin-top:8px; font-size:13px; color:var(--muted); text-decoration:none; }
+  ul { padding-left:20px; }
+  hr { border:none; border-top:1px solid var(--border); margin:24px 0; }
+  .kicker { color:var(--muted); font-size:14px; text-transform:uppercase; letter-spacing:1px; }
+  .nav { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin:14px 0; font-size:15px; }
+  .nav a { text-decoration:none; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="nav">📚 <a href="index.html">← Node.js Guide</a> &nbsp;|&nbsp; <strong>Backend Concepts (you're here)</strong></div>
+
+<p class="kicker">Interview Prep · Conceptual (non-coding)</p>
+<h1>Backend Engineering Concepts</h1>
+<p class="muted">Language-agnostic backend concepts senior interviewers ask verbally — "explain how X works / how would you design Y." No coding. Concept → crisp answer → what to say.</p>
+
+<div class="toc" id="top">
+<strong>Contents</strong>
+<a href="#s1">1 · Networking &amp; HTTP Fundamentals</a>
+<a href="#s2">2 · API Design (REST / gRPC / GraphQL)</a>
+<a href="#s3">3 · Authentication &amp; Authorization</a>
+<a href="#s4">4 · Caching</a>
+<a href="#s5">5 · Scalability &amp; Load Balancing</a>
+<a href="#s6">6 · Distributed Systems (CAP, consistency)</a>
+<a href="#s7">7 · Messaging &amp; Event-Driven</a>
+<a href="#s8">8 · Microservices &amp; Communication</a>
+<a href="#s9">9 · Reliability &amp; Resilience Patterns</a>
+<a href="#s10">10 · Concurrency, Throughput &amp; Performance</a>
+<a href="#s11">11 · Security (OWASP-level)</a>
+<a href="#s12">12 · Observability (logs/metrics/traces)</a>
+<a href="#s13">13 · System Design — How to Approach It</a>
+<a href="#s14">14 · Rapid-Fire Conceptual Q&amp;A (40+)</a>
+</div>
+
+<!-- 1 -->
+<h2 id="s1">1 · Networking &amp; HTTP Fundamentals</h2>
+<p class="q">HTTP methods &amp; when</p>
+<p class="a">GET (read, safe, idempotent), POST (create, not idempotent), PUT (full replace, idempotent), PATCH (partial update), DELETE (idempotent). "Safe" = no side effects; "idempotent" = same result if retried.</p>
+<p class="q">Key status codes</p>
+<p class="a">2xx success (200, 201 created, 204 no content), 3xx redirect (301/304), 4xx client (400 bad, 401 unauth, 403 forbidden, 404, 409 conflict, 422 validation, 429 too many), 5xx server (500, 502 bad gateway, 503 unavailable, 504 timeout).</p>
+<p class="q">HTTP/1.1 vs 2 vs 3</p>
+<p class="a">1.1 = one request per connection (head-of-line blocking, keep-alive helps). 2 = multiplexing many streams over one TCP connection, header compression, server push. 3 = runs over QUIC (UDP), removes TCP head-of-line blocking, faster connection setup.</p>
+<p class="q">TCP vs UDP</p>
+<p class="a">TCP = connection-oriented, reliable, ordered, slower (handshake, retransmit) — used for HTTP/APIs. UDP = connectionless, no guarantees, fast — used for video, DNS, QUIC.</p>
+<p class="q">HTTPS / TLS</p>
+<p class="a">Encrypts traffic. TLS handshake: client hello → server cert (public key) → key exchange → symmetric session key. Gives confidentiality, integrity, authentication (via CA-signed cert).</p>
+<p class="q">DNS</p>
+<p class="a">Resolves domain → IP. Recursive resolver → root → TLD → authoritative. Cached with TTL. Round-robin / GeoDNS can do basic load balancing.</p>
+<p class="q">REST vs RPC/gRPC vs GraphQL</p>
+<ul>
+<li><strong>REST</strong> — resources + HTTP verbs; simple, cacheable; can over/under-fetch.</li>
+<li><strong>gRPC</strong> — binary (protobuf) over HTTP/2; fast, strongly typed, streaming; great service-to-service; not browser-native.</li>
+<li><strong>GraphQL</strong> — client asks for exactly the fields it needs (one endpoint); solves over/under-fetching; caching &amp; rate-limiting are harder.</li>
+</ul>
+<p class="q">WebSockets vs long-polling vs SSE</p>
+<p class="a">WebSocket = full-duplex persistent connection (chat, live). SSE = server→client one-way stream over HTTP. Long-polling = client repeatedly holds a request open — fallback when WS unavailable.</p>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 2 -->
+<h2 id="s2">2 · API Design</h2>
+<ul>
+<li><strong>Idempotency</strong> — retrying must not double-charge; use an <em>idempotency key</em> for POST (client sends a unique key; server dedupes).</li>
+<li><strong>Versioning</strong> — URL (<code>/v1</code>), header, or content negotiation. Never break existing clients.</li>
+<li><strong>Pagination</strong> — offset/limit (simple, slow deep) vs cursor/keyset (scales, stable under inserts).</li>
+<li><strong>Rate limiting</strong> — token bucket / leaky bucket / fixed &amp; sliding window; return 429 + <code>Retry-After</code>.</li>
+<li><strong>Errors</strong> — consistent shape (<code>{code, message}</code>), correct status, no leaking internals.</li>
+<li><strong>Contracts</strong> — validate input at the edge; use OpenAPI/JSON-schema; backward-compatible changes only.</li>
+</ul>
+<div class="tip"><strong>Say this:</strong> "For a payments POST I require an idempotency key so a client retry after a network blip doesn't double-charge — the server records the key and returns the original result."</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 3 -->
+<h2 id="s3">3 · Authentication &amp; Authorization</h2>
+<p class="a"><strong>AuthN</strong> = who you are; <strong>AuthZ</strong> = what you can do.</p>
+<ul>
+<li><strong>Sessions</strong> — server stores state, client holds cookie. Easy revoke; needs shared store to scale.</li>
+<li><strong>JWT</strong> — stateless signed token; scales; hard to revoke (short TTL + refresh). Signed, not encrypted — no secrets inside.</li>
+<li><strong>OAuth 2.0</strong> — delegated authorization ("Login with Google"); flows: authorization code (web apps), client credentials (service-to-service), PKCE (mobile/SPA).</li>
+<li><strong>OpenID Connect</strong> — identity layer on top of OAuth2 (adds ID token = who the user is).</li>
+<li><strong>RBAC vs ABAC</strong> — roles (admin/user) vs attribute-based policies (dept + resource + action).</li>
+<li><strong>Service-to-service</strong> — API keys, mTLS, or short-lived tokens; least privilege.</li>
+</ul>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 4 -->
+<h2 id="s4">4 · Caching</h2>
+<p class="q">Why &amp; where</p>
+<p class="a">Reduce latency &amp; load. Layers: browser → CDN (edge) → API/app cache (Redis/Memcached) → DB cache. Cache what's read-heavy and changes rarely.</p>
+<p class="q">Strategies</p>
+<ul>
+<li><strong>Cache-aside (lazy)</strong> — app checks cache, on miss reads DB and populates. Most common.</li>
+<li><strong>Write-through</strong> — write to cache + DB together (consistent, slower writes).</li>
+<li><strong>Write-back</strong> — write to cache, flush to DB later (fast, risk of loss).</li>
+<li><strong>Write-around</strong> — write DB only; cache populated on read.</li>
+</ul>
+<p class="q">Eviction &amp; invalidation</p>
+<p class="a">Eviction: LRU / LFU / TTL. Invalidation is the hard part ("there are only two hard things..."): use TTLs, versioned keys, or event-based invalidation. Watch for <strong>cache stampede</strong> (many misses at once) — mitigate with locks / request coalescing / staggered TTLs.</p>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 5 -->
+<h2 id="s5">5 · Scalability &amp; Load Balancing</h2>
+<ul>
+<li><strong>Vertical</strong> (bigger machine) vs <strong>horizontal</strong> (more machines). Horizontal scales further; needs <strong>stateless</strong> services.</li>
+<li><strong>Stateless services</strong> — no in-memory session; store state in Redis/DB so any instance can serve any request (enables scaling + failover).</li>
+<li><strong>Load balancer</strong> — L4 (TCP, fast) vs L7 (HTTP-aware, can route by path/header). Algorithms: round-robin, least-connections, IP-hash, weighted.</li>
+<li><strong>Sharding/partitioning</strong> — split data across nodes by a key (hash or range). Scales writes; adds routing + rebalancing complexity.</li>
+<li><strong>Replication</strong> — copies for read scaling + HA (primary/replica). Watch replication lag / read-after-write consistency.</li>
+<li><strong>Autoscaling</strong> — add/remove instances on CPU/queue-depth/latency.</li>
+</ul>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 6 -->
+<h2 id="s6">6 · Distributed Systems</h2>
+<p class="q">CAP theorem</p>
+<p class="a">In a network <strong>partition</strong>, you must choose <strong>Consistency</strong> or <strong>Availability</strong> — can't have both. CP system rejects writes to stay consistent; AP system stays up but may serve stale data. (No partition → you can have both.)</p>
+<p class="q">Consistency models</p>
+<p class="a"><strong>Strong</strong> — every read sees the latest write (slower, coordination). <strong>Eventual</strong> — replicas converge over time (fast, may read stale). <strong>Read-your-writes / causal</strong> — middle grounds.</p>
+<p class="q">Idempotency &amp; exactly-once</p>
+<p class="a">Networks retry, so design operations to be safe to repeat. True "exactly-once delivery" is impossible; you get <strong>at-least-once delivery + idempotent processing</strong> = effectively-once.</p>
+<p class="q">Distributed transactions</p>
+<p class="a"><strong>2PC</strong> (two-phase commit) — coordinator prepares then commits; blocking, poor availability. <strong>Saga</strong> — sequence of local transactions with compensating actions on failure; preferred in microservices.</p>
+<p class="q">Consensus</p>
+<p class="a"><strong>Raft/Paxos</strong> — how nodes agree on a value/leader despite failures (used by etcd, Kafka controllers, DBs). At interview level: "leader election + replicated log, majority quorum."</p>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 7 -->
+<h2 id="s7">7 · Messaging &amp; Event-Driven</h2>
+<ul>
+<li><strong>Queue (point-to-point)</strong> — one consumer processes each message (SQS, RabbitMQ). <strong>Pub/Sub</strong> — many subscribers get each message (SNS, Kafka topics).</li>
+<li><strong>Why async messaging</strong> — decoupling, buffering spikes, retries, resilience (producer doesn't wait on consumer).</li>
+<li><strong>Delivery guarantees</strong> — at-most-once (may lose), at-least-once (may dup → need idempotency), exactly-once (hard/limited).</li>
+<li><strong>Ordering</strong> — global ordering is expensive; use partitions/FIFO groups for per-key ordering (Kafka partition key, SQS FIFO group).</li>
+<li><strong>Dead-letter queue (DLQ)</strong> — messages that keep failing go here for inspection instead of blocking the queue.</li>
+<li><strong>Backpressure</strong> — slow consumers; handle via queue buffering, rate limits, scaling consumers.</li>
+<li><strong>Kafka vs SQS/RabbitMQ</strong> — Kafka = high-throughput distributed log, replayable, ordered per partition; SQS = simple managed queue; RabbitMQ = flexible routing.</li>
+<li><strong>Event sourcing / CQRS</strong> — store events as source of truth (replayable); separate read &amp; write models.</li>
+</ul>
+<div class="tip"><strong>Say this (your strength):</strong> "I built event-driven services on SQS/EventBridge — at-least-once delivery, so I made handlers idempotent with a dedupe key, and pushed poison messages to a DLQ instead of blocking the pipeline."</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 8 -->
+<h2 id="s8">8 · Microservices &amp; Communication</h2>
+<ul>
+<li><strong>Monolith vs microservices</strong> — monolith = simple, one deploy, tight coupling; microservices = independent deploy/scale, but network complexity, distributed data, ops overhead. <strong>Start monolith, split when needed.</strong></li>
+<li><strong>Sync (REST/gRPC)</strong> vs <strong>async (events/queues)</strong> communication — async decouples and adds resilience.</li>
+<li><strong>Service discovery</strong> — how services find each other (DNS, registry like Consul, or platform like k8s Services).</li>
+<li><strong>API gateway</strong> — single entry: routing, auth, rate limiting, aggregation.</li>
+<li><strong>Data per service</strong> — each service owns its data; no shared DB. Cross-service consistency via events/saga.</li>
+<li><strong>Patterns</strong> — circuit breaker, bulkhead, sidecar, strangler fig (incremental migration), BFF (backend-for-frontend).</li>
+</ul>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 9 -->
+<h2 id="s9">9 · Reliability &amp; Resilience Patterns</h2>
+<ul>
+<li><strong>Retries with exponential backoff + jitter</strong> — avoid retry storms; cap attempts.</li>
+<li><strong>Timeouts</strong> — never wait forever on a downstream call.</li>
+<li><strong>Circuit breaker</strong> — after N failures, "open" the circuit and fail fast for a while, then half-open to test recovery — stops cascading failures.</li>
+<li><strong>Bulkhead</strong> — isolate resources (thread/connection pools) so one failing dependency doesn't sink everything.</li>
+<li><strong>Idempotency</strong> — safe retries.</li>
+<li><strong>Graceful degradation / fallback</strong> — serve cached/partial data when a dependency is down.</li>
+<li><strong>Rate limiting &amp; load shedding</strong> — protect yourself; drop excess load early.</li>
+<li><strong>Health checks + graceful shutdown</strong> — for orchestrators (k8s liveness/readiness).</li>
+</ul>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 10 -->
+<h2 id="s10">10 · Concurrency, Throughput &amp; Performance</h2>
+<ul>
+<li><strong>Latency vs throughput</strong> — latency = time per request; throughput = requests/sec. Optimize the one that matters.</li>
+<li><strong>p50/p95/p99</strong> — talk in percentiles, not averages; tail latency matters at scale.</li>
+<li><strong>Connection pooling</strong> — reuse DB/HTTP connections; opening per request is expensive.</li>
+<li><strong>Async I/O vs threads</strong> — async (Node) scales I/O cheaply; threads for CPU work.</li>
+<li><strong>Batching &amp; N+1</strong> — batch calls, avoid N+1 query patterns.</li>
+<li><strong>Backpressure</strong> — don't accept work faster than you can process.</li>
+<li><strong>Profiling</strong> — measure before optimizing; find the actual bottleneck.</li>
+</ul>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 11 -->
+<h2 id="s11">11 · Security (OWASP-level, conceptual)</h2>
+<ul>
+<li><strong>Injection</strong> (SQL/command) — use parameterized queries / validation.</li>
+<li><strong>XSS</strong> — escape output, CSP headers.</li>
+<li><strong>CSRF</strong> — tokens / SameSite cookies (for cookie-based auth).</li>
+<li><strong>SSRF</strong> — validate/allowlist outbound URLs.</li>
+<li><strong>Broken auth/access control</strong> — enforce authZ on every request, least privilege.</li>
+<li><strong>Secrets</strong> — in a secret manager/env, never in code; rotate.</li>
+<li><strong>Encryption</strong> — TLS in transit, encryption at rest (KMS).</li>
+<li><strong>DDoS/abuse</strong> — rate limiting, WAF, CDN.</li>
+<li><strong>Dependencies</strong> — scan &amp; patch (supply-chain).</li>
+</ul>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 12 -->
+<h2 id="s12">12 · Observability</h2>
+<p class="a"><strong>Three pillars:</strong></p>
+<ul>
+<li><strong>Logs</strong> — structured (JSON), with a <strong>correlation/trace ID</strong> to follow a request across services.</li>
+<li><strong>Metrics</strong> — numeric time-series (latency, error rate, throughput, saturation — the "RED"/"USE" methods).</li>
+<li><strong>Traces</strong> — distributed tracing shows a request's path &amp; timing across services (OpenTelemetry, Jaeger, Dynatrace).</li>
+</ul>
+<p class="a"><strong>SLI/SLO/SLA</strong> — indicator (measured), objective (target, e.g. 99.9%), agreement (contract). <strong>Error budget</strong> = allowed unreliability. Alert on symptoms (user-facing), not just causes.</p>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 13 -->
+<h2 id="s13">13 · System Design — How to Approach It (verbal)</h2>
+<p class="a">Even for non-coding rounds, they'll say "how would you design X." Use this order out loud:</p>
+<ol>
+<li><strong>Clarify requirements</strong> — functional + non-functional (scale, latency, consistency, read/write ratio).</li>
+<li><strong>Estimate scale</strong> — users, QPS, data size (rough numbers show seniority).</li>
+<li><strong>Define the API</strong> — a few key endpoints.</li>
+<li><strong>High-level design</strong> — client → LB → services → cache → data store → queue. Draw the boxes.</li>
+<li><strong>Data model</strong> — key entities &amp; access patterns (keep light if DB-excluded).</li>
+<li><strong>Deep-dive</strong> — pick 1–2 hard parts (caching, sharding, queue, consistency).</li>
+<li><strong>Bottlenecks &amp; trade-offs</strong> — where it breaks at scale, how you'd fix it, what you traded.</li>
+</ol>
+<div class="tip"><strong>Senior signal:</strong> always state <strong>trade-offs</strong> ("I'd choose eventual consistency here to stay available, and make writes idempotent"). Naming the trade-off &gt; naming the tech.</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 14 -->
+<h2 id="s14">14 · Rapid-Fire Conceptual Q&amp;A (40+)</h2>
+<p class="q">Idempotent vs safe method?</p><p class="a">Safe = no side effects (GET); idempotent = same result if repeated (GET/PUT/DELETE).</p>
+<p class="q">Why idempotency keys?</p><p class="a">So a retried POST (after a network blip) doesn't create/charge twice.</p>
+<p class="q">Cache-aside vs write-through?</p><p class="a">Cache-aside = populate on miss; write-through = write cache+DB together (consistent, slower).</p>
+<p class="q">Hardest cache problem?</p><p class="a">Invalidation — keeping cache fresh; use TTL, versioned keys, or event-based invalidation.</p>
+<p class="q">Cache stampede?</p><p class="a">Many simultaneous misses hammer the DB; fix with locks/coalescing/staggered TTLs.</p>
+<p class="q">L4 vs L7 load balancer?</p><p class="a">L4 routes by TCP (fast); L7 is HTTP-aware (route by path/header, TLS termination).</p>
+<p class="q">Why stateless services?</p><p class="a">Any instance can serve any request → easy horizontal scaling and failover.</p>
+<p class="q">Vertical vs horizontal scaling?</p><p class="a">Bigger box vs more boxes; horizontal scales further but needs statelessness.</p>
+<p class="q">CAP in one line?</p><p class="a">Under a partition, choose consistency or availability, not both.</p>
+<p class="q">Strong vs eventual consistency?</p><p class="a">Always-latest (slower) vs converges-over-time (faster, may be stale).</p>
+<p class="q">At-least-once vs exactly-once?</p><p class="a">At-least-once may duplicate → make processing idempotent; true exactly-once delivery is impractical.</p>
+<p class="q">Queue vs pub/sub?</p><p class="a">Queue = one consumer per message; pub/sub = every subscriber gets it.</p>
+<p class="q">What's a DLQ?</p><p class="a">Dead-letter queue for messages that repeatedly fail, so they don't block the main queue.</p>
+<p class="q">How ensure message ordering?</p><p class="a">Partition by key / FIFO groups; global ordering is expensive.</p>
+<p class="q">2PC vs Saga?</p><p class="a">2PC = blocking distributed commit; Saga = local txns + compensations (preferred in microservices).</p>
+<p class="q">Circuit breaker?</p><p class="a">After repeated failures, fail fast for a while to stop cascading failures, then test recovery.</p>
+<p class="q">Retry best practice?</p><p class="a">Exponential backoff + jitter, capped attempts, only on transient errors, idempotent ops.</p>
+<p class="q">Bulkhead?</p><p class="a">Isolate resource pools so one failing dependency can't exhaust everything.</p>
+<p class="q">Monolith vs microservices — when split?</p><p class="a">Start monolith; split when team/scale/deploy independence demands it.</p>
+<p class="q">How do microservices share data?</p><p class="a">Each owns its DB; sync via events/saga — no shared database.</p>
+<p class="q">API gateway does what?</p><p class="a">Single entry: routing, auth, rate limiting, aggregation.</p>
+<p class="q">gRPC vs REST?</p><p class="a">gRPC = binary/protobuf over HTTP2, fast, typed, streaming (service-to-service); REST = simple, cacheable, browser-friendly.</p>
+<p class="q">When GraphQL?</p><p class="a">Clients need flexible field selection / avoid over-fetching; downside: caching &amp; rate-limiting harder.</p>
+<p class="q">HTTP/2 benefit?</p><p class="a">Multiplexing many streams over one connection + header compression.</p>
+<p class="q">TCP vs UDP?</p><p class="a">Reliable/ordered vs fast/unreliable.</p>
+<p class="q">What does TLS give you?</p><p class="a">Confidentiality, integrity, server authentication.</p>
+<p class="q">Session vs JWT?</p><p class="a">Server state + easy revoke vs stateless + scales, hard to revoke.</p>
+<p class="q">OAuth vs OIDC?</p><p class="a">OAuth = authorization (access); OIDC adds identity (who the user is).</p>
+<p class="q">RBAC vs ABAC?</p><p class="a">Role-based vs attribute/policy-based access.</p>
+<p class="q">Rate limiting algorithms?</p><p class="a">Token bucket, leaky bucket, fixed/sliding window.</p>
+<p class="q">p99 vs average latency?</p><p class="a">p99 exposes tail latency that averages hide — what users actually feel.</p>
+<p class="q">Latency vs throughput?</p><p class="a">Time per request vs requests per second.</p>
+<p class="q">Why connection pooling?</p><p class="a">Reuse expensive connections instead of opening one per request.</p>
+<p class="q">Sharding vs replication?</p><p class="a">Sharding splits data (scale writes); replication copies data (scale reads + HA).</p>
+<p class="q">Replication lag risk?</p><p class="a">Reading a replica may return stale data (no read-your-writes).</p>
+<p class="q">Three pillars of observability?</p><p class="a">Logs, metrics, traces.</p>
+<p class="q">Correlation ID?</p><p class="a">An ID propagated across services to trace one request end-to-end.</p>
+<p class="q">SLI/SLO/SLA?</p><p class="a">Indicator / objective / agreement; error budget = allowed unreliability.</p>
+<p class="q">CSRF vs XSS?</p><p class="a">CSRF = forged request using your cookie; XSS = injecting script into a page.</p>
+<p class="q">Where do secrets go?</p><p class="a">Secret manager / env vars, never in code; rotate them.</p>
+<p class="q">Event sourcing?</p><p class="a">Store state as an append-only log of events (replayable, auditable).</p>
+<p class="q">Strangler pattern?</p><p class="a">Incrementally replace a legacy system by routing pieces to new services.</p>
+
+<hr>
+<p class="muted"><strong>If short on time, master:</strong> caching (strategies + invalidation) · load balancing &amp; horizontal scaling · CAP + consistency · queues + delivery guarantees + idempotency · circuit breaker/retries/timeouts · the system-design approach. These recur in almost every senior backend conversation.</p>
+<div class="nav">📚 <a href="index.html">← Back to Node.js Guide</a></div>
+
+</div>
+</body>
+</html>
