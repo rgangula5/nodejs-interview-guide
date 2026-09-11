@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Patterns &amp; SOLID — Interview Guide</title>
+<style>
+  :root { --bg:#0f1419; --card:#1a212b; --text:#e6edf3; --muted:#9aa7b4; --accent:#4ea1ff; --code:#0b0f14; --border:#2a3441; --green:#3fb950; --yellow:#e3b341; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; line-height:1.6; font-size:17px; }
+  .wrap { max-width:820px; margin:0 auto; padding:16px 18px 80px; }
+  h1 { font-size:26px; line-height:1.25; margin:8px 0 4px; }
+  h2 { font-size:21px; margin:34px 0 10px; padding-top:10px; border-top:2px solid var(--border); color:#fff; }
+  h3 { font-size:18px; margin:20px 0 4px; color:var(--accent); }
+  p, li { color:var(--text); }
+  .muted { color:var(--muted); font-size:15px; }
+  code { background:var(--code); padding:2px 6px; border-radius:5px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:14px; }
+  pre { background:var(--code); border:1px solid var(--border); border-radius:10px; padding:12px 14px; overflow-x:auto; font-size:13.5px; line-height:1.5; }
+  pre code { background:none; padding:0; }
+  .q { font-weight:700; color:#fff; margin:16px 0 4px; }
+  .a { margin:0 0 8px; }
+  .f { border-left:3px solid var(--accent); padding:2px 0 2px 12px; margin:8px 0 10px 4px; }
+  .fq { font-weight:600; color:#9fd0ff; margin:6px 0 2px; font-size:16px; }
+  .fa { margin:0 0 6px; font-size:16px; }
+  .lbl { color:var(--muted); font-size:14px; }
+  .tip { background:#132a1a; border-left:4px solid var(--green); padding:8px 12px; border-radius:6px; margin:10px 0; font-size:15.5px; }
+  .toc { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin:18px 0; }
+  .toc a { color:var(--accent); text-decoration:none; display:block; padding:5px 0; border-bottom:1px solid var(--border); font-size:15.5px; }
+  .toc a:last-child { border-bottom:none; }
+  a { color:var(--accent); }
+  .top { display:inline-block; margin-top:8px; font-size:13px; color:var(--muted); text-decoration:none; }
+  ul { padding-left:20px; }
+  hr { border:none; border-top:1px solid var(--border); margin:24px 0; }
+  .kicker { color:var(--muted); font-size:14px; text-transform:uppercase; letter-spacing:1px; }
+  .nav { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin:14px 0; font-size:14.5px; line-height:2; }
+  .nav a { text-decoration:none; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div style="background:#1a212b;border:1px solid #2a3441;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:14.5px;line-height:2;">📚 <a href="index.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Node.js</a> · <a href="concepts.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Backend Concepts</a> · <a href="javascript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">JavaScript</a> · <a href="typescript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">TypeScript</a> · <strong>Patterns & SOLID (here)</strong></div>
+
+<p class="kicker">Interview Prep · Design</p>
+<h1>Design Patterns &amp; SOLID</h1>
+<p class="muted">Each: what it is → problem it solves → when to use → <span style="color:#9fd0ff">↳ follow-up</span>. Backend/Node-flavored examples.</p>
+
+<div class="toc" id="top">
+<strong>Contents</strong>
+<a href="#s1">1 · SOLID Principles</a>
+<a href="#s2">2 · Creational (Singleton, Factory, Builder…)</a>
+<a href="#s3">3 · Structural (Adapter, Decorator, Facade, Proxy…)</a>
+<a href="#s4">4 · Behavioral (Observer, Strategy, Command…)</a>
+<a href="#s5">5 · Backend/Node patterns (DI, Repository, Middleware, Circuit Breaker)</a>
+<a href="#s6">6 · Anti-patterns</a>
+<a href="#s7">7 · Rapid-Fire Q&amp;A</a>
+</div>
+
+<!-- 1 SOLID -->
+<h2 id="s1">1 · SOLID Principles</h2>
+<p class="muted">Five principles for maintainable OO design. Know the letter, the one-line meaning, and a concrete violation→fix.</p>
+
+<h3>S — Single Responsibility</h3>
+<p class="a">A class/module should have <strong>one reason to change</strong> — one job. A <code>UserService</code> that also formats emails and writes files has three reasons to change; split them.</p>
+<div class="f"><p class="fq">↳ Isn't "one responsibility" vague? How do you decide?</p><p class="fa">Frame it as "one <em>reason to change</em> / one actor." If two stakeholders (e.g., DBA and marketing) would request changes to the same class, it has two responsibilities.</p></div>
+
+<h3>O — Open/Closed</h3>
+<p class="a">Open for <strong>extension</strong>, closed for <strong>modification</strong>. Add new behavior via new code (new subclass/strategy), not by editing tested existing code.</p>
+<div class="f"><p class="fq">↳ How do you achieve it concretely?</p><p class="fa">Program to interfaces/abstractions + polymorphism or Strategy pattern. e.g., a <code>PaymentProcessor</code> interface; add <code>StripeProcessor</code> without touching existing ones. A <code>switch</code> you keep editing per new type is an OCP smell.</p></div>
+
+<h3>L — Liskov Substitution</h3>
+<p class="a">Subtypes must be <strong>substitutable</strong> for their base type without breaking behavior. The classic violation: <code>Square extends Rectangle</code> where setting width also changes height, breaking code that expects Rectangle semantics.</p>
+<div class="f"><p class="fq">↳ Give the rule of thumb.</p><p class="fa">A subclass shouldn't <em>strengthen preconditions</em> or <em>weaken postconditions</em>, or throw on methods the base supports. "Is-a" in code must hold behaviorally, not just structurally.</p></div>
+
+<h3>I — Interface Segregation</h3>
+<p class="a">Clients shouldn't depend on methods they don't use. Prefer <strong>small, focused interfaces</strong> over one fat interface. A <code>Machine</code> interface forcing a simple printer to implement <code>scan()</code>/<code>fax()</code> is a violation.</p>
+<div class="f"><p class="fq">↳ How does this relate to SRP?</p><p class="fa">SRP is about a class's responsibilities; ISP is about not forcing clients to depend on a bloated contract. Both push toward small, cohesive units.</p></div>
+
+<h3>D — Dependency Inversion</h3>
+<p class="a">High-level modules shouldn't depend on low-level details; both depend on <strong>abstractions</strong>. Depend on an interface (<code>Logger</code>), not a concrete (<code>FileLogger</code>) — inject the concrete in.</p>
+<div class="f"><p class="fq">↳ Difference between Dependency Inversion and Dependency Injection?</p><p class="fa"><strong>Inversion (DIP)</strong> is the <em>principle</em> (depend on abstractions). <strong>Injection (DI)</strong> is a <em>technique</em> to achieve it (pass dependencies in via constructor/params instead of creating them inside). DI is one way to satisfy DIP.</p></div>
+<div class="tip"><strong>Say this:</strong> "SOLID keeps code changeable — SRP/ISP keep units small, OCP/DIP let me add features without editing tested code, LSP keeps polymorphism safe."</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 2 Creational -->
+<h2 id="s2">2 · Creational Patterns</h2>
+
+<h3>Singleton</h3>
+<p class="a">One shared instance, global access point (config, DB pool, logger).</p>
+<pre><code>let instance;
+export function getDb() { return instance ??= createPool(); }</code></pre>
+<div class="f"><p class="fq">↳ Why do people call Singleton an anti-pattern?</p><p class="fa">Global mutable state → hidden coupling, hard to test/mock, concurrency issues. Prefer passing the single instance via DI so it's explicit and swappable. In Node, a module is already a cached singleton — often you don't need the pattern at all.</p></div>
+
+<h3>Factory Method / Factory</h3>
+<p class="a">Encapsulate object creation behind a function/method so callers don't <code>new</code> concretes directly.</p>
+<pre><code>function makeLogger(kind) {
+  return kind === 'file' ? new FileLogger() : new ConsoleLogger();
+}</code></pre>
+<div class="f"><p class="fq">↳ Factory vs Abstract Factory?</p><p class="fa">Factory creates one product; <strong>Abstract Factory</strong> creates <em>families</em> of related products behind one interface (e.g., a UI factory producing matching Button + Checkbox for a theme).</p></div>
+
+<h3>Builder</h3>
+<p class="a">Construct a complex object step-by-step; avoids telescoping constructors.</p>
+<pre><code>new QueryBuilder().select('*').from('users').where('id=1').build();</code></pre>
+<div class="f"><p class="fq">↳ Builder vs Factory?</p><p class="fa">Factory decides <em>which</em> object; Builder assembles <em>one</em> complex object incrementally with many optional parts.</p></div>
+
+<h3>Prototype</h3>
+<p class="a">Create new objects by cloning an existing one (when construction is expensive). In JS this maps to <code>Object.create</code>/structuredClone.</p>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 3 Structural -->
+<h2 id="s3">3 · Structural Patterns</h2>
+
+<h3>Adapter</h3>
+<p class="a">Wrap an incompatible interface so it matches what your code expects (e.g., adapt a 3rd-party SDK to your <code>PaymentProcessor</code> interface).</p>
+<div class="f"><p class="fq">↳ Adapter vs Facade?</p><p class="fa">Adapter <em>converts</em> one interface to another (compatibility). Facade <em>simplifies</em> a complex subsystem behind one easy interface.</p></div>
+
+<h3>Decorator</h3>
+<p class="a">Add behavior to an object by wrapping it, without changing its class (composition over inheritance). Node <strong>middleware</strong> and stream wrapping are decorator-flavored.</p>
+<pre><code>const timed = (fn) =&gt; (...a) =&gt; { const s=Date.now(); const r=fn(...a); log(Date.now()-s); return r; };</code></pre>
+<div class="f"><p class="fq">↳ Decorator vs inheritance for adding behavior?</p><p class="fa">Decorator stacks behaviors at runtime and avoids subclass explosion; inheritance is static and can violate OCP when combinations multiply.</p></div>
+
+<h3>Facade</h3>
+<p class="a">A simple front over a complex subsystem (e.g., one <code>OrderService.place()</code> hiding inventory, payment, shipping calls).</p>
+
+<h3>Proxy</h3>
+<p class="a">A stand-in controlling access to another object — for lazy loading, caching, access control, or logging. JS has a built-in <code>Proxy</code>.</p>
+<div class="f"><p class="fq">↳ Proxy vs Decorator?</p><p class="fa">Both wrap. Decorator <em>adds</em> behavior; Proxy <em>controls access</em> (same interface, may deny/defer/cache).</p></div>
+
+<h3>Composite</h3>
+<p class="a">Treat individual objects and groups uniformly via a tree (e.g., files &amp; folders both implement <code>size()</code>).</p>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 4 Behavioral -->
+<h2 id="s4">4 · Behavioral Patterns</h2>
+
+<h3>Observer (Pub/Sub)</h3>
+<p class="a">Subject notifies subscribers of changes. Node's <code>EventEmitter</code> is Observer. Decouples producers from consumers.</p>
+<div class="f"><p class="fq">↳ Observer vs Pub/Sub — same thing?</p><p class="fa">Similar; classic Observer has the subject directly hold its observers. Pub/Sub usually adds a <em>broker/event bus</em> between them, so publishers and subscribers don't know each other at all (looser coupling).</p></div>
+
+<h3>Strategy</h3>
+<p class="a">Encapsulate interchangeable algorithms behind one interface; swap at runtime. The go-to for Open/Closed (add a new strategy, don't edit a switch).</p>
+<pre><code>const sorters = { quick: quickSort, merge: mergeSort };
+function sort(data, strategy) { return sorters[strategy](data); }</code></pre>
+
+<h3>Command</h3>
+<p class="a">Encapsulate a request as an object (with <code>execute()</code>) — enables queues, undo/redo, logging of operations.</p>
+
+<h3>Chain of Responsibility</h3>
+<p class="a">Pass a request along a chain of handlers until one handles it. <strong>Express middleware is exactly this.</strong></p>
+<div class="f"><p class="fq">↳ Which real Node thing is Chain of Responsibility?</p><p class="fa">The middleware pipeline — each handler processes or calls <code>next()</code> to pass the request along.</p></div>
+
+<h3>Iterator</h3>
+<p class="a">Sequential access without exposing internals. JS iterables/generators (<code>for...of</code>, <code>Symbol.iterator</code>) are built-in Iterator.</p>
+
+<h3>State &amp; Template Method</h3>
+<p class="a"><strong>State</strong> — object changes behavior as its internal state changes (like a state machine). <strong>Template Method</strong> — base class defines the algorithm skeleton, subclasses fill in steps.</p>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 5 Backend/Node -->
+<h2 id="s5">5 · Backend / Node Patterns</h2>
+<ul>
+<li><strong>Dependency Injection</strong> — pass deps (db, logger, config) into a class/function instead of creating them inside → testable, swappable (satisfies DIP). NestJS is built around a DI container.</li>
+<li><strong>Repository</strong> — abstract data access behind an interface (<code>UserRepo.findById</code>) so business logic doesn't know the data source; swap DB or mock in tests.</li>
+<li><strong>Middleware / Pipeline</strong> — Chain of Responsibility for cross-cutting concerns (auth, logging, validation).</li>
+<li><strong>Module pattern</strong> — encapsulate private state, expose a public API (classic pre-ESM; still conceptually relevant).</li>
+<li><strong>Circuit Breaker</strong> — stop calling a failing dependency after N failures; fail fast, then test recovery (resilience). See Backend Concepts page.</li>
+<li><strong>Saga</strong> — manage a distributed transaction as local steps + compensations.</li>
+</ul>
+<div class="f"><p class="fq">↳ How does DI help testing?</p><p class="fa">You inject a mock/stub instead of the real dependency, so you can unit-test logic in isolation without a real DB/network.</p></div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 6 Anti-patterns -->
+<h2 id="s6">6 · Anti-patterns (know a few)</h2>
+<ul>
+<li><strong>God object</strong> — one class doing everything (violates SRP).</li>
+<li><strong>Spaghetti / tight coupling</strong> — no abstractions; a change ripples everywhere.</li>
+<li><strong>Callback hell</strong> — deeply nested callbacks (fix with Promises/async).</li>
+<li><strong>Magic numbers/strings</strong> — unexplained literals; use named constants.</li>
+<li><strong>Premature optimization</strong> / over-engineering — patterns for their own sake.</li>
+<li><strong>Singleton overuse</strong> — hidden global state.</li>
+</ul>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 7 Rapid -->
+<h2 id="s7">7 · Rapid-Fire Q&amp;A</h2>
+<p class="q">SOLID stands for?</p><p class="a">Single-responsibility, Open/closed, Liskov substitution, Interface segregation, Dependency inversion.</p>
+<p class="q">SRP in one line?</p><p class="a">One reason to change.</p>
+<p class="q">Open/Closed how?</p><p class="a">Extend via new code (interfaces/strategy), don't modify tested code.</p>
+<p class="q">Liskov violation example?</p><p class="a">Square/Rectangle where a subtype breaks base expectations.</p>
+<p class="q">ISP?</p><p class="a">Small focused interfaces; don't force unused methods.</p>
+<p class="q">DIP vs DI?</p><p class="a">Principle (depend on abstractions) vs technique (inject dependencies).</p>
+<p class="q">Singleton?</p><p class="a">One shared instance; often an anti-pattern (global state).</p>
+<p class="q">Node module = ?</p><p class="a">Already a cached singleton.</p>
+<p class="q">Factory vs Abstract Factory?</p><p class="a">One product vs families of related products.</p>
+<p class="q">Builder use?</p><p class="a">Assemble a complex object step-by-step.</p>
+<p class="q">Adapter?</p><p class="a">Convert one interface to another.</p>
+<p class="q">Decorator?</p><p class="a">Add behavior by wrapping (middleware-like).</p>
+<p class="q">Facade?</p><p class="a">Simple interface over a complex subsystem.</p>
+<p class="q">Proxy vs Decorator?</p><p class="a">Controls access vs adds behavior.</p>
+<p class="q">Observer in Node?</p><p class="a">EventEmitter.</p>
+<p class="q">Strategy?</p><p class="a">Interchangeable algorithms behind one interface.</p>
+<p class="q">Chain of Responsibility in Node?</p><p class="a">Express middleware.</p>
+<p class="q">Iterator in JS?</p><p class="a">Iterables/generators (Symbol.iterator, for...of).</p>
+<p class="q">Command pattern use?</p><p class="a">Queue/undo/log operations as objects.</p>
+<p class="q">Repository pattern?</p><p class="a">Abstract data access behind an interface.</p>
+<p class="q">DI benefit?</p><p class="a">Testable, swappable dependencies.</p>
+<p class="q">God object?</p><p class="a">Anti-pattern — one class does everything.</p>
+<p class="q">Composition over inheritance?</p><p class="a">Prefer wrapping/injecting behavior over deep class hierarchies.</p>
+
+<hr>
+<p class="muted"><strong>Master first:</strong> all five SOLID (with a violation→fix each) · Singleton (and why it's risky) · Factory · Strategy · Observer · Decorator · Dependency Injection. These come up in almost every design discussion.</p>
+<div style="background:#1a212b;border:1px solid #2a3441;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:14.5px;line-height:2;">📚 <a href="index.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Node.js</a> · <a href="concepts.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Backend Concepts</a> · <a href="javascript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">JavaScript</a> · <a href="typescript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">TypeScript</a> · <strong>Patterns & SOLID (here)</strong></div>
+
+</div>
+</body>
+</html>

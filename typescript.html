@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TypeScript Interview Guide</title>
+<style>
+  :root { --bg:#0f1419; --card:#1a212b; --text:#e6edf3; --muted:#9aa7b4; --accent:#4ea1ff; --code:#0b0f14; --border:#2a3441; --green:#3fb950; --yellow:#e3b341; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; line-height:1.6; font-size:17px; }
+  .wrap { max-width:820px; margin:0 auto; padding:16px 18px 80px; }
+  h1 { font-size:26px; line-height:1.25; margin:8px 0 4px; }
+  h2 { font-size:21px; margin:34px 0 10px; padding-top:10px; border-top:2px solid var(--border); color:#fff; }
+  p, li { color:var(--text); }
+  .muted { color:var(--muted); font-size:15px; }
+  code { background:var(--code); padding:2px 6px; border-radius:5px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:14px; }
+  pre { background:var(--code); border:1px solid var(--border); border-radius:10px; padding:12px 14px; overflow-x:auto; font-size:13.5px; line-height:1.5; }
+  pre code { background:none; padding:0; }
+  .q { font-weight:700; color:#fff; margin:16px 0 4px; }
+  .a { margin:0 0 8px; }
+  .f { border-left:3px solid var(--accent); padding:2px 0 2px 12px; margin:8px 0 10px 4px; }
+  .fq { font-weight:600; color:#9fd0ff; margin:6px 0 2px; font-size:16px; }
+  .fa { margin:0 0 6px; font-size:16px; }
+  .tip { background:#132a1a; border-left:4px solid var(--green); padding:8px 12px; border-radius:6px; margin:10px 0; font-size:15.5px; }
+  .warn { background:#2a2413; border-left:4px solid var(--yellow); padding:8px 12px; border-radius:6px; margin:10px 0; font-size:15.5px; }
+  .toc { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin:18px 0; }
+  .toc a { color:var(--accent); text-decoration:none; display:block; padding:5px 0; border-bottom:1px solid var(--border); font-size:15.5px; }
+  .toc a:last-child { border-bottom:none; }
+  a { color:var(--accent); }
+  .top { display:inline-block; margin-top:8px; font-size:13px; color:var(--muted); text-decoration:none; }
+  ul { padding-left:20px; }
+  hr { border:none; border-top:1px solid var(--border); margin:24px 0; }
+  .kicker { color:var(--muted); font-size:14px; text-transform:uppercase; letter-spacing:1px; }
+  .nav { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin:14px 0; font-size:14.5px; line-height:2; }
+  .nav a { text-decoration:none; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div style="background:#1a212b;border:1px solid #2a3441;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:14.5px;line-height:2;">📚 <a href="index.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Node.js</a> · <a href="concepts.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Backend Concepts</a> · <a href="javascript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">JavaScript</a> · <strong>TypeScript (here)</strong> · <a href="design-patterns.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Patterns & SOLID</a></div>
+
+<p class="kicker">Interview Prep · TypeScript</p>
+<h1>TypeScript Interview Guide</h1>
+<p class="muted">Base answer → <span style="color:#9fd0ff">↳ follow-up</span> → deeper, because interviewers never stop at layer 1. Covers the type system, generics, utility &amp; advanced types, narrowing, and the traps.</p>
+
+<div class="toc" id="top">
+<strong>Contents</strong>
+<a href="#s1">1 · Why TypeScript &amp; How It Works</a>
+<a href="#s2">2 · Types: any / unknown / never / void</a>
+<a href="#s3">3 · type vs interface</a>
+<a href="#s4">4 · Union, Intersection, Literal &amp; Narrowing</a>
+<a href="#s5">5 · Type Guards &amp; Discriminated Unions</a>
+<a href="#s6">6 · Generics</a>
+<a href="#s7">7 · Utility Types</a>
+<a href="#s8">8 · Advanced: Conditional, Mapped, Template, infer</a>
+<a href="#s9">9 · Enums &amp; const assertions</a>
+<a href="#s10">10 · Classes &amp; Access Modifiers</a>
+<a href="#s11">11 · Functions, Overloads, this</a>
+<a href="#s12">12 · Modules, .d.ts, tsconfig strictness</a>
+<a href="#s13">13 · Rapid-Fire Q&amp;A (40+)</a>
+</div>
+
+<!-- 1 -->
+<h2 id="s1">1 · Why TypeScript &amp; How It Works</h2>
+<p class="q">What is TypeScript and why use it?</p>
+<p class="a">A <strong>typed superset of JavaScript</strong> that compiles to plain JS. It adds a static type system checked at <strong>compile time</strong>, giving early error detection, better tooling/autocomplete, safer refactors, and self-documenting code.</p>
+<div class="f">
+<p class="fq">↳ Does TypeScript do anything at runtime?</p>
+<p class="fa"><strong>No.</strong> Types are fully <em>erased</em> during compilation — the emitted JS has no type info. So you can't do runtime checks based on TS types (e.g., you can't reflect an <code>interface</code>). Runtime validation still needs actual JS checks or a library like Zod.</p>
+<p class="fq">↳ Then how does it catch errors?</p>
+<p class="fa">The compiler (<code>tsc</code>) statically analyzes your code against the types before emitting JS. If it doesn't type-check, you get a compile error — but (by default) it still emits JS unless <code>noEmitOnError</code> is set.</p>
+<p class="fq">↳ What is "structural typing" (and how does it differ from Java/C#)?</p>
+<p class="fa">TS uses <strong>structural</strong> ("duck") typing: compatibility is based on an object's <em>shape</em>, not its declared name. If it has the required members, it fits — even if it never declared it <code>implements</code> the type. Java/C# use <strong>nominal</strong> typing (must explicitly declare the relationship).</p>
+</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 2 -->
+<h2 id="s2">2 · any / unknown / never / void</h2>
+<p class="q">Explain any, unknown, never, void.</p>
+<ul>
+<li><code>any</code> — opts out of type checking; anything goes. <strong>Avoid</strong> — it silently disables safety.</li>
+<li><code>unknown</code> — the type-safe <code>any</code>; you can hold anything but must <strong>narrow/check</strong> before using it.</li>
+<li><code>never</code> — a value that <strong>never occurs</strong> (a function that always throws or infinite-loops; the type of exhaustiveness checks).</li>
+<li><code>void</code> — a function returns nothing meaningful (<code>undefined</code>).</li>
+</ul>
+<div class="f">
+<p class="fq">↳ any vs unknown — concrete difference?</p>
+<p class="fa">Both accept any value, but <code>any</code> lets you <em>do</em> anything with it (no checks); <code>unknown</code> forces you to narrow first:</p>
+<pre><code>let a: any = getData();     a.foo.bar();     // compiles, may crash
+let u: unknown = getData(); u.foo;           // ERROR
+if (typeof u === 'object' && u) { /* now safe */ }</code></pre>
+<p class="fq">↳ Where is <code>never</code> actually useful?</p>
+<p class="fa">Exhaustiveness checking on a union — if you handle every case, the "default" is <code>never</code>; add a new case and TS errors:</p>
+<pre><code>function area(s: Shape) {
+  switch (s.kind) {
+    case 'circle': return ...;
+    case 'square': return ...;
+    default: const _exhaustive: never = s; return _exhaustive; // errors if a case is missed
+  }
+}</code></pre>
+<p class="fq">↳ Difference between <code>void</code> and <code>undefined</code>?</p>
+<p class="fa"><code>undefined</code> is a specific value; <code>void</code> means "ignore the return value." A <code>() =&gt; void</code> callback may actually return something — TS just ignores it (useful so <code>arr.forEach(x =&gt; arr2.push(x))</code> is allowed even though push returns a number).</p>
+</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 3 -->
+<h2 id="s3">3 · type vs interface</h2>
+<p class="q">When do you use <code>type</code> vs <code>interface</code>?</p>
+<p class="a">Both describe object shapes and are mostly interchangeable. <strong>interface</strong> — for object/class contracts; supports declaration merging and <code>extends</code>. <strong>type</strong> — more flexible: unions, intersections, primitives, tuples, mapped/conditional types.</p>
+<div class="f">
+<p class="fq">↳ Name concrete things one can do that the other can't.</p>
+<p class="fa"><code>type</code> can be a union / tuple / primitive alias / conditional / mapped type — <code>interface</code> cannot. <code>interface</code> supports <strong>declaration merging</strong> (declare it twice, they merge) — <code>type</code> cannot (duplicate = error).</p>
+<pre><code>type ID = string | number;          // union - only type can do this
+interface Box { w: number; }
+interface Box { h: number; }        // merges -> { w; h }  (only interface)</code></pre>
+<p class="fq">↳ Which should a library expose publicly, and why?</p>
+<p class="fa">Often <strong>interface</strong> for public object/API contracts — because consumers can augment it via declaration merging (extending third-party types). Use <code>type</code> for unions/complex compositions. Teams commonly standardize on one for consistency.</p>
+<p class="fq">↳ Can both extend?</p>
+<p class="fa">Yes. <code>interface B extends A {}</code>; <code>type B = A &amp; { ... }</code> (intersection). Interfaces can extend types and vice versa in most cases.</p>
+</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 4 -->
+<h2 id="s4">4 · Union, Intersection, Literal &amp; Narrowing</h2>
+<p class="q">Union vs intersection?</p>
+<p class="a"><strong>Union</strong> <code>A | B</code> = value is one of the types (you can only use members common to all). <strong>Intersection</strong> <code>A &amp; B</code> = value has all members of both.</p>
+<div class="f">
+<p class="fq">↳ Why can't I access <code>b.name</code> on a <code>A | B</code> directly?</p>
+<p class="fa">On a union you may only use members that exist on <em>every</em> member of the union. To access type-specific members you must <strong>narrow</strong> first (typeof / in / discriminant).</p>
+<p class="fq">↳ What are literal types and why useful?</p>
+<p class="fa">A type that is an exact value: <code>type Dir = 'up' | 'down'</code>. Gives you enum-like safety with plain strings — great for discriminated unions and API contracts.</p>
+</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 5 -->
+<h2 id="s5">5 · Type Guards &amp; Discriminated Unions</h2>
+<p class="q">How do you narrow types?</p>
+<p class="a"><code>typeof</code> (primitives), <code>instanceof</code> (classes), <code>in</code> (property presence), truthiness, equality, and <strong>user-defined type guards</strong>.</p>
+<div class="f">
+<p class="fq">↳ Write a user-defined type guard.</p>
+<pre><code>function isCat(a: Cat | Dog): a is Cat {   // "type predicate"
+  return (a as Cat).meow !== undefined;
+}
+if (isCat(animal)) animal.meow();          // narrowed to Cat</code></pre>
+<p class="fq">↳ What's a discriminated (tagged) union and why is it the best pattern?</p>
+<p class="fa">A union of object types sharing a common <em>literal</em> field (the discriminant). Switching on it narrows automatically and enables exhaustiveness checks:</p>
+<pre><code>type Shape =
+  | { kind: 'circle'; r: number }
+  | { kind: 'square'; side: number };
+function area(s: Shape) {
+  switch (s.kind) {                 // TS narrows by 'kind'
+    case 'circle': return Math.PI * s.r ** 2;
+    case 'square': return s.side ** 2;
+  }
+}</code></pre>
+<p class="fq">↳ What's an assertion function?</p>
+<p class="fa">A function that throws if a condition fails and narrows afterward: <code>function assert(c: unknown): asserts c { if (!c) throw new Error(); }</code>. After <code>assert(x)</code>, TS treats <code>x</code> as truthy.</p>
+</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 6 -->
+<h2 id="s6">6 · Generics</h2>
+<p class="q">What are generics and why?</p>
+<p class="a">Type parameters that let a function/class/type work over many types while <strong>preserving</strong> type information (vs <code>any</code>, which loses it).</p>
+<pre><code>function identity&lt;T&gt;(x: T): T { return x; }
+const n = identity(5);      // T = number, return type number</code></pre>
+<div class="f">
+<p class="fq">↳ Generic vs <code>any</code> — why not just use any?</p>
+<p class="fa"><code>any</code> discards the type (return is <code>any</code>); a generic <strong>links</strong> input and output types, keeping full safety and autocomplete downstream.</p>
+<p class="fq">↳ What are generic constraints?</p>
+<pre><code>function longest&lt;T extends { length: number }&gt;(a: T, b: T): T {
+  return a.length &gt;= b.length ? a : b;   // T must have .length
+}</code></pre>
+<p class="fq">↳ Explain <code>keyof</code> and a generic getter.</p>
+<pre><code>function get&lt;T, K extends keyof T&gt;(obj: T, key: K): T[K] {
+  return obj[key];   // return type is the property's type
+}
+get({a:1,b:'x'}, 'b'); // typed as string</code></pre>
+<p class="fq">↳ What is <code>infer</code> (preview)?</p>
+<p class="fa">Used in conditional types to <em>extract</em> a type. e.g., <code>type ElementOf&lt;T&gt; = T extends (infer U)[] ? U : never;</code> — pulls the element type out of an array type. (More in §8.)</p>
+</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 7 -->
+<h2 id="s7">7 · Utility Types (know these cold)</h2>
+<ul>
+<li><code>Partial&lt;T&gt;</code> — all props optional. <code>Required&lt;T&gt;</code> — all required.</li>
+<li><code>Readonly&lt;T&gt;</code> — all props readonly.</li>
+<li><code>Pick&lt;T,K&gt;</code> — subset of keys. <code>Omit&lt;T,K&gt;</code> — all but those keys.</li>
+<li><code>Record&lt;K,V&gt;</code> — object with keys K and values V.</li>
+<li><code>Exclude&lt;U,X&gt;</code> / <code>Extract&lt;U,X&gt;</code> — filter a union.</li>
+<li><code>NonNullable&lt;T&gt;</code> — remove null/undefined.</li>
+<li><code>ReturnType&lt;F&gt;</code>, <code>Parameters&lt;F&gt;</code>, <code>Awaited&lt;T&gt;</code> — extract from functions/promises.</li>
+</ul>
+<div class="f">
+<p class="fq">↳ Implement <code>Partial&lt;T&gt;</code> yourself (very common ask).</p>
+<pre><code>type MyPartial&lt;T&gt; = { [K in keyof T]?: T[K] };</code></pre>
+<p class="fq">↳ Implement <code>Pick</code> and <code>Omit</code>.</p>
+<pre><code>type MyPick&lt;T, K extends keyof T&gt; = { [P in K]: T[P] };
+type MyOmit&lt;T, K extends keyof T&gt; = MyPick&lt;T, Exclude&lt;keyof T, K&gt;&gt;;</code></pre>
+<p class="fq">↳ Difference between <code>Record&lt;string, X&gt;</code> and an index signature?</p>
+<p class="fa">Nearly equivalent; <code>Record</code> is a cleaner alias for <code>{ [k: string]: X }</code> and can also take a union of literal keys (<code>Record&lt;'a'|'b', number&gt;</code>) to require exactly those keys.</p>
+</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 8 -->
+<h2 id="s8">8 · Advanced: Conditional, Mapped, Template, infer</h2>
+<p class="q">Mapped types</p>
+<pre><code>type Optional&lt;T&gt; = { [K in keyof T]?: T[K] };       // map over keys
+type Getters&lt;T&gt; = { [K in keyof T as `get${Capitalize&lt;string &amp; K&gt;}`]: () =&gt; T[K] };</code></pre>
+<p class="q">Conditional types + infer</p>
+<pre><code>type IsString&lt;T&gt; = T extends string ? true : false;
+type Unwrap&lt;T&gt; = T extends Promise&lt;infer U&gt; ? U : T;   // infer extracts U
+type Elem&lt;T&gt; = T extends (infer U)[] ? U : never;</code></pre>
+<p class="q">Template literal types</p>
+<pre><code>type Route = `/api/${string}`;
+type Event = `on${Capitalize&lt;'click' | 'hover'&gt;}`;  // 'onClick' | 'onHover'</code></pre>
+<div class="f">
+<p class="fq">↳ What does the <code>as</code> clause do in a mapped type?</p>
+<p class="fa">Key remapping — rename or filter keys while mapping (e.g., prefix keys with <code>get</code>, or drop keys by mapping to <code>never</code>).</p>
+<p class="fq">↳ What is a distributive conditional type?</p>
+<p class="fa">When the checked type is a <em>naked</em> type parameter and you pass a union, the conditional distributes over each member: <code>type NonNull&lt;T&gt; = T extends null|undefined ? never : T</code> applied to <code>string|null</code> gives <code>string</code>.</p>
+</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 9 -->
+<h2 id="s9">9 · Enums &amp; const assertions</h2>
+<p class="q">Enums — pros/cons?</p>
+<p class="a">Named constants. Numeric enums auto-increment; string enums are explicit. <strong>Caveat:</strong> regular enums emit runtime JS objects (not fully erased) and have quirks — many teams prefer <strong>union of string literals</strong> or <code>as const</code> objects.</p>
+<div class="f">
+<p class="fq">↳ Why do some teams avoid enums?</p>
+<p class="fa">They generate runtime code (bigger bundles), numeric enums are loosely typed (any number assignable in some cases), and <code>const enum</code> has its own inlining/tooling caveats. A union type <code>'A' | 'B'</code> is purely compile-time and simpler.</p>
+<p class="fq">↳ What does <code>as const</code> do?</p>
+<pre><code>const dirs = ['up','down'] as const;  // readonly tuple of literals, type 'up'|'down'
+type Dir = typeof dirs[number];        // 'up' | 'down'</code></pre>
+<p class="fa"><code>as const</code> makes literals <em>readonly</em> and narrows them to their exact literal types instead of widening (e.g., <code>string</code>).</p>
+</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 10 -->
+<h2 id="s10">10 · Classes &amp; Access Modifiers</h2>
+<ul>
+<li><code>public</code> (default), <code>private</code> (class only), <code>protected</code> (class + subclasses).</li>
+<li><code>readonly</code> — set once (in declaration/constructor).</li>
+<li><strong>Parameter properties</strong> — declare + assign in the constructor signature: <code>constructor(private id: string) {}</code>.</li>
+<li><code>abstract</code> classes/methods — can't instantiate; must be implemented by subclass.</li>
+<li><code>implements</code> — a class conforms to an interface (structural).</li>
+</ul>
+<div class="f">
+<p class="fq">↳ TS <code>private</code> vs JS <code>#private</code> — difference?</p>
+<p class="fa">TS <code>private</code> is <strong>compile-time only</strong> — erased, accessible at runtime via bracket access. JS <code>#field</code> is <strong>truly private</strong> at runtime (hard privacy). Use <code>#</code> when you need real encapsulation.</p>
+<p class="fq">↳ abstract class vs interface — when each?</p>
+<p class="fa">Interface = pure contract, no implementation, multiple can be implemented. Abstract class = partial implementation + shared state + forces subclasses to implement abstract members; single inheritance.</p>
+</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 11 -->
+<h2 id="s11">11 · Functions, Overloads, this</h2>
+<pre><code>// overloads: multiple signatures, one implementation
+function parse(x: string): object;
+function parse(x: number): string;
+function parse(x: any): any { /* ... */ }</code></pre>
+<div class="f">
+<p class="fq">↳ Function type vs call signature?</p>
+<p class="fa"><code>type Fn = (a: number) =&gt; string</code>. You can also add call signatures to an interface (a callable object with properties).</p>
+<p class="fq">↳ Covariance/contravariance of parameters (advanced)?</p>
+<p class="fa">Function parameter types are checked <em>bivariantly</em> by default (contravariantly under <code>strictFunctionTypes</code>). Interview-safe phrasing: "return types are covariant, parameters are contravariant under strict function types."</p>
+</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 12 -->
+<h2 id="s12">12 · Modules, .d.ts, tsconfig strictness</h2>
+<ul>
+<li><strong>.d.ts</strong> — declaration files: types only, no implementation; describe JS libs (<code>@types/*</code>) or ambient globals (<code>declare</code>).</li>
+<li><strong>tsconfig</strong> — <code>strict</code> turns on the safety suite: <code>noImplicitAny</code>, <code>strictNullChecks</code>, <code>strictFunctionTypes</code>, etc.</li>
+</ul>
+<div class="f">
+<p class="fq">↳ What does <code>strictNullChecks</code> change?</p>
+<p class="fa">Without it, <code>null</code>/<code>undefined</code> are assignable to everything (unsafe). With it, they're separate types you must handle explicitly — the single most valuable strict flag.</p>
+<p class="fq">↳ Type assertion (<code>as</code>) vs type casting?</p>
+<p class="fa">TS "casting" (<code>x as T</code>) is a <strong>compile-time assertion</strong> — it tells the compiler "trust me," does no runtime conversion, and can be unsafe. Prefer narrowing/guards over assertions.</p>
+<p class="fq">↳ Non-null assertion <code>!</code>?</p>
+<p class="fa"><code>value!.foo</code> tells TS "this isn't null/undefined." Compile-time only; wrong assertion → runtime crash. Use sparingly.</p>
+</div>
+<a class="top" href="#top">↑ Contents</a>
+
+<!-- 13 -->
+<h2 id="s13">13 · Rapid-Fire Q&amp;A (40+)</h2>
+<p class="q">Is TS runtime or compile-time?</p><p class="a">Compile-time; types are erased, no runtime effect.</p>
+<p class="q">Structural vs nominal typing?</p><p class="a">TS is structural — compatibility by shape, not name.</p>
+<p class="q">any vs unknown?</p><p class="a">any disables checks; unknown forces narrowing before use.</p>
+<p class="q">When is never used?</p><p class="a">Functions that never return; exhaustiveness checks.</p>
+<p class="q">void vs undefined?</p><p class="a">void = ignore the return; undefined = a specific value.</p>
+<p class="q">type vs interface?</p><p class="a">interface: merging + OO contracts; type: unions/tuples/mapped/conditional.</p>
+<p class="q">Can interface do unions?</p><p class="a">No — only type can.</p>
+<p class="q">Declaration merging?</p><p class="a">Multiple interface declarations with the same name combine.</p>
+<p class="q">Union vs intersection?</p><p class="a">One-of vs has-all.</p>
+<p class="q">Literal type?</p><p class="a">Exact value type, e.g. 'up' | 'down'.</p>
+<p class="q">How to narrow?</p><p class="a">typeof, instanceof, in, equality, user-defined guards.</p>
+<p class="q">Type predicate?</p><p class="a">`arg is Type` return type — a user-defined type guard.</p>
+<p class="q">Discriminated union?</p><p class="a">Union sharing a literal tag; enables auto-narrowing + exhaustiveness.</p>
+<p class="q">Assertion function?</p><p class="a">`asserts x` — throws or narrows.</p>
+<p class="q">Generics — why?</p><p class="a">Reuse with types preserved (unlike any).</p>
+<p class="q">Generic constraint?</p><p class="a">`T extends Shape` limits what T can be.</p>
+<p class="q">keyof?</p><p class="a">Union of an object's keys.</p>
+<p class="q">T[K] (indexed access)?</p><p class="a">The type of property K on T.</p>
+<p class="q">infer?</p><p class="a">Extracts a type inside a conditional type.</p>
+<p class="q">Mapped type?</p><p class="a">`{ [K in keyof T]: ... }` — transform each property.</p>
+<p class="q">Conditional type?</p><p class="a">`T extends U ? X : Y`.</p>
+<p class="q">Template literal type?</p><p class="a">Build string literal types, e.g. `/api/${string}`.</p>
+<p class="q">Partial/Required?</p><p class="a">All optional / all required.</p>
+<p class="q">Pick/Omit?</p><p class="a">Keep / drop selected keys.</p>
+<p class="q">Record&lt;K,V&gt;?</p><p class="a">Object with keys K, values V.</p>
+<p class="q">Exclude/Extract?</p><p class="a">Filter a union out / in.</p>
+<p class="q">ReturnType/Parameters?</p><p class="a">Extract a function's return/param types.</p>
+<p class="q">Awaited&lt;T&gt;?</p><p class="a">Unwraps a Promise's resolved type.</p>
+<p class="q">as const?</p><p class="a">Readonly + narrow to literal types.</p>
+<p class="q">Enum downside?</p><p class="a">Emits runtime code; unions are purely compile-time.</p>
+<p class="q">private (TS) vs #private (JS)?</p><p class="a">Compile-time only vs true runtime privacy.</p>
+<p class="q">Parameter properties?</p><p class="a">Declare+assign a field in the constructor signature.</p>
+<p class="q">abstract vs interface?</p><p class="a">Partial impl + state vs pure contract.</p>
+<p class="q">implements?</p><p class="a">Class conforms to an interface (structural).</p>
+<p class="q">Function overloads?</p><p class="a">Multiple signatures, one implementation.</p>
+<p class="q">strictNullChecks?</p><p class="a">Makes null/undefined explicit types you must handle.</p>
+<p class="q">as (assertion)?</p><p class="a">Compile-time "trust me"; no runtime conversion.</p>
+<p class="q">Non-null assertion !?</p><p class="a">Asserts value isn't null/undefined (unsafe if wrong).</p>
+<p class="q">.d.ts file?</p><p class="a">Type declarations only; describes JS libs / ambient types.</p>
+<p class="q">unknown in a catch?</p><p class="a">In strict mode `catch (e)` is unknown — narrow before use.</p>
+<p class="q">Index signature?</p><p class="a">`{ [k: string]: T }` for dynamic keys.</p>
+<p class="q">Does TS guarantee runtime safety?</p><p class="a">No — only compile-time; external data still needs runtime validation (e.g., Zod).</p>
+
+<hr>
+<p class="muted"><strong>Master first:</strong> any/unknown/never · type vs interface · generics + constraints + keyof · utility types (and implementing Partial/Pick) · discriminated unions + narrowing · strictNullChecks. Those dominate TS interviews.</p>
+<div style="background:#1a212b;border:1px solid #2a3441;border-radius:10px;padding:10px 14px;margin:14px 0;font-size:14.5px;line-height:2;">📚 <a href="index.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Node.js</a> · <a href="concepts.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Backend Concepts</a> · <a href="javascript.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">JavaScript</a> · <strong>TypeScript (here)</strong> · <a href="design-patterns.html" style="color:#4ea1ff;font-weight:600;text-decoration:none;">Patterns & SOLID</a></div>
+
+</div>
+</body>
+</html>
